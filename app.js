@@ -16,17 +16,23 @@
     notice.hidden = false;
   }
 
+  // index.html을 파일로 바로 열면 브라우저가 fetch를 막으므로,
+  // sounds.js에 미리 담아 둔 음원 데이터를 먼저 쓰고 없을 때만 fetch한다.
+  async function loadSoundBytes(path) {
+    const b64 = window.SOUND_DATA && window.SOUND_DATA[path];
+    if (b64) return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`${path} (${res.status})`);
+    return res.arrayBuffer();
+  }
+
   async function loadPad(def) {
-    const [soundRes, clipRes] = await Promise.all([fetch(def.sound), fetch(def.clip)]);
-    if (!soundRes.ok) throw new Error(`${def.sound} (${soundRes.status})`);
-    if (!clipRes.ok) throw new Error(`${def.clip} (${clipRes.status})`);
-    const buffer = await audio.decodeAudioData(await soundRes.arrayBuffer());
-    const clipUrl = URL.createObjectURL(await clipRes.blob());
+    const buffer = await audio.decodeAudioData(await loadSoundBytes(def.sound));
 
     const videos = [];
     for (let i = 0; i < VIDEOS_PER_PAD; i++) {
       const v = document.createElement("video");
-      v.src = clipUrl;
+      v.src = def.clip; // 영상은 파일로 열어도(file://) 바로 재생된다
       v.muted = true;
       v.playsInline = true;
       v.preload = "auto";
@@ -81,12 +87,8 @@
     }
   });
 
-  if (location.protocol === "file:") {
-    showNotice("파일을 직접 열면 소리를 불러올 수 없어요. 폴더에서 python3 -m http.server 를 실행한 뒤 http://localhost:8000 으로 열어 주세요.");
-    return;
-  }
-
   Promise.all(window.PADS.map(loadPad)).catch((err) => {
-    showNotice(`불러오지 못한 파일이 있어요: ${err.message}`);
+    const hint = location.protocol === "file:" ? " (소리를 바꿨다면 python3 make_sounds_js.py 를 한 번 실행해 주세요)" : "";
+    showNotice(`불러오지 못한 파일이 있어요: ${err.message}${hint}`);
   });
 })();
