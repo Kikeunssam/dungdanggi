@@ -42,7 +42,7 @@
       v.load();
       videos.push(v);
     }
-    pads.set(def.key, { def, buffer, videos, voices: [] });
+    pads.set(def.key, { def, buffer, videos, voices: [], lastFlip: 0 });
   }
 
   function playSound(pad) {
@@ -58,12 +58,22 @@
     if (pad.voices.length > VOICES_PER_PAD) pad.voices.shift().stop();
   }
 
+  const FLIPS = ["none", "scaleX(-1)", "scaleY(-1)", "scale(-1, -1)"];
+
+  function randomFlip(pad) {
+    let i = Math.floor(Math.random() * (FLIPS.length - 1));
+    if (i >= pad.lastFlip) i++; // 직전 방향은 건너뛴다
+    pad.lastFlip = i;
+    return FLIPS[i];
+  }
+
   function playVideo(pad) {
     // 쉬고 있는 영상을 먼저 쓰고, 모두 재생 중이면 가장 오래된 것을 처음부터 다시 튼다.
     let v = pad.videos.find((x) => !x.classList.contains("on"));
     if (!v) v = pad.videos.reduce((a, b) => (a.startedAt <= b.startedAt ? a : b));
     v.startedAt = performance.now();
     v.style.zIndex = String(++zTop);
+    if (pad.def.flip) v.style.transform = randomFlip(pad);
     v.currentTime = 0;
     v.classList.add("on");
     v.play().catch(() => v.classList.remove("on"));
