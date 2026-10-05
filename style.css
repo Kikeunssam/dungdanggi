@@ -1,0 +1,43 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #e8e3da url("assets/hanji.jpg") center / cover no-repeat;
+  cursor: none;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+}
+
+/* 영상은 한지 배경 위에 '어둡게(darken)'로 겹친다.
+   종이 부분은 배경과 같아 사라지고 먹만 남으며, 겹친 먹은 더 진한 쪽이 보인다. */
+#stage video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: darken;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#stage video.on {
+  visibility: visible;
+}
+
+#notice {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  font: 14px/1.5 system-ui, sans-serif;
+  color: #5a5048;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: default;
+}
