@@ -33,7 +33,7 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 | 뱅크 | 배경 | 영상 겹치기 | 패드 |
 |---|---|---|---|
 | 1 수묵 | 한지 (`assets/hanji.jpg`) | darken (먹만 남음) | 아래 26개 키, 소리+영상 |
-| 2 단청 | 기와 (`assets/giwa.jpg`) | lighten (검은 바탕은 사라지고 색만 남음) | a 연꽃, s 물결, d 꽃 흩날림, f 오색 물결 (`clips/dancheong/`, 아직 소리 없음) |
+| 2 단청 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | a 연꽃, s 물결, d 기와 문양, f 머리초 띠 (`clips/dancheong/`, 아직 소리 없음) |
 
 단청 뱅크의 다른 키는 아직 아무것도 하지 않는다. `pads.js`의 `window.BANKS`에서 뱅크별로 패드를 적고,
 `sound`를 빼면 영상만 나오는 패드가 된다.

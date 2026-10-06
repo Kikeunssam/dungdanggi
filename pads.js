@@ -1,10 +1,10 @@
 // 뱅크(악기 묶음) 여러 개. PC는 스페이스바, 터치는 오른쪽 아래 칸으로 뱅크를 바꾼다.
 // 뱅크마다 배경 그림과 영상 겹치는 방식(blend)을 정한다:
-//   darken  = 밝은 종이 위 먹 (종이색은 사라지고 먹만 남는다)
-//   lighten = 어두운 배경 위 색 (검은 바탕은 사라지고 색만 남는다)
+//   darken  = 밝은 종이 위 먹·색 (흰 바탕·종이색은 사라지고 그림만 남는다)
+//   lighten = 어두운 배경 위 색 (검은 바탕은 사라지고 색만 남는다) — 검은 바탕 클립을 쓸 때
 // 패드 한 줄 = 키 하나. sound는 빼도 된다 (영상만 나온다).
 // flip: true 면 누를 때마다 영상을 좌우·상하로 무작위 반전한다 (직전과는 다른 방향으로).
-// 영상은 1920x1080. 수묵은 한지 위 먹, 단청은 검은 바탕 위 색이고, 끝 프레임은 빈 바탕이어야 한다.
+// 영상은 1920x1080, 밝은 바탕(한지·흰색) 위 그림이고, 끝 프레임은 빈 바탕이어야 한다.
 window.BANKS = [
   {
     name: "수묵",
@@ -41,13 +41,13 @@ window.BANKS = [
   },
   {
     name: "단청",
-    background: "assets/giwa.jpg",
-    blend: "lighten",
+    background: "assets/hanji_aged.jpg",
+    blend: "darken",
     pads: [
       { key: "a", name: "연꽃",      clip: "clips/dancheong/dc01_lotus_bloom.mp4", flip: true },
       { key: "s", name: "물결",      clip: "clips/dancheong/dc02_wave_sweep.mp4", flip: true },
-      { key: "d", name: "꽃 흩날림", clip: "clips/dancheong/dc03_scatter_blooms.mp4", flip: true },
-      { key: "f", name: "오색 물결", clip: "clips/dancheong/dc04_rainbow_ripple.mp4", flip: true },
+      { key: "d", name: "기와 문양", clip: "clips/dancheong/dc03_tile_medallions.mp4", flip: true },
+      { key: "f", name: "머리초 띠", clip: "clips/dancheong/dc04_meoricho_band.mp4", flip: true },
     ],
   },
 ];
