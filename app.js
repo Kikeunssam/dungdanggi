@@ -57,7 +57,37 @@
 
   async function loadPad(b, def) {
     const buffer = def.sound ? await decode(await loadSoundBytes(def.sound)) : null; // 소리 없는 패드도 된다
-    b.pads.set(def.key, { def, bank: b, buffer, voices: [], lastFlip: 0 });
+    const pad = { def, bank: b, buffer, voices: [], lastFlip: 0 };
+    // 단청처럼 clip_timing.js 에 타이밍이 적힌 영상은 소리 길이에 맞춰 늘린다 (아래 '소리 길이 맞추기')
+    const name = def.clip.split("/").pop().replace(/\.[^.]+$/, "");
+    const timing = window.CLIP_TIMING && window.CLIP_TIMING[name];
+    if (timing && buffer) {
+      pad.timing = timing;
+      pad.env = envelope(buffer);
+    }
+    b.pads.set(def.key, pad);
+  }
+
+  // 소리의 세기 변화(포락선): 초당 30번 RMS, 0.15초 정도로 부드럽게, 가장 큰 값을 1로
+  const ENV_RATE = 30;
+  function envelope(buffer) {
+    const data = buffer.getChannelData(0);
+    const step = Math.max(1, Math.floor(buffer.sampleRate / ENV_RATE));
+    const raw = [];
+    for (let i = 0; i < data.length; i += step) {
+      let sum = 0;
+      const end = Math.min(data.length, i + step);
+      for (let j = i; j < end; j++) sum += data[j] * data[j];
+      raw.push(Math.sqrt(sum / (end - i)));
+    }
+    const half = 2; // 앞뒤 2칸씩 = 약 0.15초 평균
+    const env = raw.map((_, i) => {
+      let sum = 0, n = 0;
+      for (let j = Math.max(0, i - half); j <= Math.min(raw.length - 1, i + half); j++) sum += raw[j], n++;
+      return sum / n;
+    });
+    const max = Math.max(...env) || 1;
+    return env.map((x) => x / max);
   }
 
   // ---- 영상 ----
@@ -123,7 +153,19 @@
     assign(v, pad);
     v.startedAt = performance.now();
     v.style.zIndex = String(++zTop);
-    v.style.transform = pad.def.flip ? randomFlip(pad) : "none";
+    v.baseTransform = pad.def.flip ? randomFlip(pad) : "none";
+    v.style.transform = v.baseTransform;
+    v.style.opacity = "";
+    v.hold = null;
+    // 소리가 영상보다 길면: 무늬가 다 핀 순간(hold)에 멈췄다가, 소리가 끝날 때 맞춰 사라지게 한다
+    if (pad.timing) {
+      const T = pad.timing;
+      const D = pad.buffer.duration;
+      if (D > T.end + 0.2) {
+        v.hold = { pad, T, startedAt: v.startedAt, resumeAt: v.startedAt + (D - (T.end - T.hold)) * 1000, state: "play" };
+        startHoldLoop();
+      }
+    }
     try {
       v.currentTime = 0;
     } catch (e) {}
@@ -131,6 +173,7 @@
     // 브라우저가 영상을 끝내 못 틀면 'ended'가 오지 않으므로, 클립 길이가 지나면 정리한다
     const startedAt = v.startedAt;
     setTimeout(() => {
+      if (v.hold && v.hold.startedAt === startedAt) return; // 소리에 맞춰 일부러 멈춰 둔 영상은 건드리지 않는다
       if (v.startedAt === startedAt && v.classList.contains("on") && (v.paused || v.readyState < 2)) v.classList.remove("on");
     }, ((v.duration || 4) + 1) * 1000);
     const p = v.play();
@@ -140,6 +183,67 @@
         v.classList.remove("on");
         console.warn("영상 재생 실패:", pad.def.key, pad.def.clip, err);
       });
+  }
+
+  // ---- 소리 길이 맞추기 (단청) ----
+  // 멈춰 있는 동안은 소리 세기를 따라 숨 쉬듯 옅어졌다 짙어지고(opacity), 아주 천천히 커진다.
+
+  let holdLoopOn = false;
+  function startHoldLoop() {
+    if (holdLoopOn) return;
+    holdLoopOn = true;
+    requestAnimationFrame(holdLoop);
+  }
+
+  function clearHold(v) {
+    v.hold = null;
+    v.style.opacity = "";
+    v.style.transform = v.baseTransform || "none";
+  }
+
+  function holdLoop(now) {
+    let active = 0;
+    for (const v of videos) {
+      const h = v.hold;
+      if (!h) continue;
+      if (h.startedAt !== v.startedAt || !v.classList.contains("on")) {
+        clearHold(v); // 다른 키가 가져갔거나, 뱅크를 바꿨거나, 끝난 영상
+        continue;
+      }
+      active++;
+      const t = (now - h.startedAt) / 1000;
+      if (h.state === "play" && v.currentTime >= h.T.hold) {
+        if (now < h.resumeAt) {
+          v.pause();
+          h.state = "held";
+          h.heldAt = t;
+        } else h.state = "release";
+      }
+      if (h.state === "held" && now >= h.resumeAt) {
+        h.state = "release";
+        const p = v.play();
+        if (p) p.catch(() => {});
+      }
+      if (h.state !== "play") {
+        const env = h.pad.env[Math.min(h.pad.env.length - 1, Math.floor(t * ENV_RATE))] || 0;
+        const span = Math.max(0.001, (h.resumeAt - h.startedAt) / 1000 - h.heldAt || 1);
+        const grow = h.heldAt === undefined ? 0 : Math.min(1, (t - h.heldAt) / span);
+        // 멈추는 순간 opacity가 툭 떨어지지 않게 0.25초 정도에 걸쳐 따라간다
+        const target = 0.35 + 0.65 * env;
+        const dt = h.lastNow === undefined ? 0 : (now - h.lastNow) / 1000;
+        h.op = h.op === undefined ? 1 : h.op + (target - h.op) * Math.min(1, dt / 0.25);
+        h.lastNow = now;
+        v.style.opacity = String(h.op);
+        v.style.transform = `${v.baseTransform === "none" ? "" : v.baseTransform} scale(${1 + 0.04 * grow})`;
+      }
+      // 안전장치: 사라질 때가 한참 지났는데도 남아 있으면 정리한다
+      if (now > h.resumeAt + ((h.T.end - h.T.hold) + 2) * 1000) {
+        v.classList.remove("on");
+        clearHold(v);
+      }
+    }
+    if (active) requestAnimationFrame(holdLoop);
+    else holdLoopOn = false;
   }
 
   // 데스크톱은 키마다 하나씩 미리 열어 둔다 (한도까지). 휴대폰은 누를 때 연다.
@@ -185,6 +289,7 @@
   function trigger(key) {
     const pad = bank.pads.get(key);
     if (!pad) return false;
+    stats.lastSoundSec = pad.buffer ? pad.buffer.duration : 0;
     if (audio.state !== "running") audio.resume();
     stats.triggers++;
     playSound(pad);
