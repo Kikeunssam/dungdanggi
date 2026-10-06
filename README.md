@@ -11,7 +11,9 @@
 
 로컬 서버로 열어도 된다: 폴더에서 `python3 -m http.server 8000` 실행 후 http://localhost:8000
 
-## 테스트 배치 (a s d f)
+## 키 배치
+
+가운데 줄 = 장구 강, 그 위 키 = 같은 장단 중, 아랫줄 = 추임새. a s d f는 꽹과리·징.
 
 | 키 | 소리 | 영상 |
 |---|---|---|
@@ -19,10 +21,24 @@
 | s | 꽹과리 게르르르 (강) | v2/ink07_slashes |
 | d | 징 (강) | v2/ink20_gray_enso |
 | f | 징 (약) | v2/ink08_enso_wash |
+| g | 장구 덩 (강) | v2/ink13_slash |
+| t | 장구 덩 (중) | v2/ink15_gray_arc |
+| h | 장구 쿵 (강) | v2/ink01_bloom |
+| y | 장구 쿵 (중) | v2/ink06_wash |
+| j | 장구 덕 (강) | v2/ink09c_splat_tendril |
+| u | 장구 덕 (중) | v2/ink05_splash |
+| k | 장구 기덕 (강) | v2/ink12_arch |
+| i | 장구 기덕 (중) | v2/ink09a_stains |
+| l | 장구 더 (강) | v2/ink03_stroke |
+| o | 장구 더 (중) | v2/ink09d_wash_drip |
+| p | 장구 더러러러 (강) | v2/ink02_scatter |
+| z | 추임새 얼쑤 | v2/ink10_dry_loop |
+| x | 추임새 얼씨구 | v2/ink11_zigzag |
+| c | 추임새 좋다 | v2/ink14_swirl |
 
-a s d f 키 모두 누를 때마다 영상이 좌우·상하로 무작위 반전된다 (`pads.js`의 `flip: true`).
+모든 키는 누를 때마다 영상이 좌우·상하로 무작위 반전된다 (`pads.js`의 `flip: true`).
 
-g h j k l은 비워 두었다. 한글 입력 상태에서도 키 자리 기준으로 동작한다.
+한글 입력 상태에서도 키 자리 기준으로 동작한다.
 
 ## 소리·영상 바꾸기
 
