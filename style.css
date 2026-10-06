@@ -2,7 +2,7 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #e8e3da url("assets/hanji.jpg") center / cover no-repeat;
+  background: #e8e3da;
   cursor: none;
   /* 터치: 스크롤·확대·길게 눌러 메뉴·글자 선택을 막는다 */
   touch-action: none;
@@ -18,8 +18,23 @@ html, body {
   inset: 0;
 }
 
-/* 영상은 한지 배경 위에 '어둡게(darken)'로 겹친다.
+/* 영상은 배경 위에 뱅크의 blend 방식으로 겹친다 (수묵: 어둡게, 단청: 밝게).
+   아래는 수묵(한지 위 '어둡게') 기준 설명.
    종이 부분은 배경과 같아 사라지고 먹만 남으며, 겹친 먹은 더 진한 쪽이 보인다. */
+/* 뱅크 배경 (한지·기와). 뱅크를 바꾸면 0.3초 동안 겹쳐 바뀐다 */
+#stage .bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: center / cover no-repeat;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#stage .bg.on {
+  opacity: 1;
+}
+
 #stage video {
   position: absolute;
   inset: 0;
@@ -65,4 +80,23 @@ html, body {
 @keyframes ripple {
   from { transform: scale(0.4); opacity: 1; }
   to { transform: scale(1.4); opacity: 0; }
+}
+
+/* 뱅크를 바꿀 때 구석에 잠깐 보였다 사라지는 이름 */
+#bank-label {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 100001;
+  font: 13px/1 system-ui, sans-serif;
+  letter-spacing: 0.2em;
+  color: rgba(128, 120, 110, 0.75);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+#bank-label.on {
+  opacity: 1;
+  transition: opacity 0.1s ease;
 }

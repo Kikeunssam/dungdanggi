@@ -7,7 +7,7 @@
   const VIDEOS_PER_PAD = 4; // 한 키에서 동시에 겹쳐 보일 수 있는 최대 개수
   const VOICES_PER_PAD = 8; // 같은 소리가 동시에 울릴 수 있는 최대 개수
 
-  // 터치 화면 칸 순서 (가로 9x3, 세로 3x9). 27번째 칸은 악기 묶음 바꾸기 자리 (아직 기능 없음).
+  // 터치 화면 칸 순서 (가로 9x3, 세로 3x9). 27번째(오른쪽 아래) 칸은 뱅크 바꾸기.
   const GRID = "qwertyuiopasdfghjklzxcvbnm".split("").concat("switch");
 
   const stage = document.getElementById("stage");
@@ -16,10 +16,22 @@
   const master = audio.createGain();
   master.connect(audio.destination);
 
-  const pads = new Map(); // key -> { def, buffer, voices, lastFlip }
+  // 뱅크마다 배경 그림 층을 하나씩 깔고, 지금 뱅크의 배경만 보이게 한다 (영상은 그 위에 겹친다)
+  const banks = window.BANKS.map((b, i) => {
+    const bg = document.createElement("div");
+    bg.className = "bg";
+    bg.style.backgroundImage = `url("${b.background}")`;
+    bg.classList.toggle("on", i === 0);
+    stage.appendChild(bg);
+    return { ...b, defs: b.pads, index: i, bg, pads: new Map() }; // pads: key -> { def, bank, buffer, voices, lastFlip }
+  });
+  let bank = banks[0];
+  const label = document.createElement("div");
+  label.id = "bank-label";
+  document.body.appendChild(label);
   const videos = []; // 전체 영상 요소 (최대 MAX_VIDEOS개)
   let zTop = 0;
-  const stats = (window.dungdanggiStats = { triggers: 0, voices: 0 }); // 테스트용 숫자
+  const stats = (window.dungdanggiStats = { triggers: 0, voices: 0, bank: 0 }); // 테스트용 숫자
 
   function showNotice(text) {
     notice.textContent = text;
@@ -41,9 +53,9 @@
     return new Promise((resolve, reject) => audio.decodeAudioData(bytes, resolve, reject));
   }
 
-  async function loadPad(def) {
-    const buffer = await decode(await loadSoundBytes(def.sound));
-    pads.set(def.key, { def, buffer, voices: [], lastFlip: 0 });
+  async function loadPad(b, def) {
+    const buffer = def.sound ? await decode(await loadSoundBytes(def.sound)) : null; // 소리 없는 패드도 된다
+    b.pads.set(def.key, { def, bank: b, buffer, voices: [], lastFlip: 0 });
   }
 
   // ---- 영상 ----
@@ -75,6 +87,7 @@
   function assign(v, pad) {
     if (v.pad === pad && v.getAttribute("src")) return;
     v.pad = pad;
+    v.style.mixBlendMode = pad.bank.blend;
     v.src = pad.def.clip;
     v.load();
   }
@@ -130,7 +143,7 @@
   // 데스크톱은 키마다 하나씩 미리 열어 둔다 (한도까지). 휴대폰은 누를 때 연다.
   function warmUp() {
     if (MOBILE) return;
-    for (const pad of pads.values()) {
+    for (const pad of banks[0].pads.values()) {
       if (videos.length >= MAX_VIDEOS) break;
       assign(createVideo(), pad);
     }
@@ -139,6 +152,7 @@
   // ---- 소리 ----
 
   function playSound(pad) {
+    if (!pad.buffer) return;
     const src = audio.createBufferSource();
     src.buffer = pad.buffer;
     src.connect(master);
@@ -166,7 +180,7 @@
   }
 
   function trigger(key) {
-    const pad = pads.get(key);
+    const pad = bank.pads.get(key);
     if (!pad) return false;
     if (audio.state !== "running") audio.resume();
     stats.triggers++;
@@ -175,13 +189,39 @@
     return true;
   }
 
+  // ---- 뱅크 바꾸기 ----
+
+  let labelTimer = 0;
+  function switchBank() {
+    bank = banks[(bank.index + 1) % banks.length];
+    stats.bank = bank.index;
+    for (const b of banks) b.bg.classList.toggle("on", b === bank);
+    // 다른 뱅크 영상이 새 배경 위에 남지 않도록 바로 감춘다 (울리고 있는 소리는 끝까지 둔다)
+    for (const v of videos) {
+      if (v.pad && v.pad.bank !== bank && v.classList.contains("on")) {
+        v.classList.remove("on");
+        v.startedAt = 0;
+        v.pause();
+      }
+    }
+    label.textContent = bank.name;
+    label.classList.add("on");
+    clearTimeout(labelTimer);
+    labelTimer = setTimeout(() => label.classList.remove("on"), 600);
+  }
+
   // ---- 입력 ----
 
   window.addEventListener("keydown", (e) => {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return; // 꾹 누르고 있을 때의 자동 반복은 무시
+    if (e.code === "Space") {
+      e.preventDefault();
+      switchBank();
+      return;
+    }
     // e.code 기준이라 한글 입력 상태(ㅁㄴㅇㄹ)에서도 키 자리로 동작한다
     const key = e.code.startsWith("Key") ? e.code.slice(3).toLowerCase() : "";
-    if (pads.has(key)) {
+    if (bank.pads.has(key)) {
       e.preventDefault();
       trigger(key);
     }
@@ -215,7 +255,7 @@
     if (e.pointerType === "mouse") return; // 마우스 클릭은 소리만 켜고 연주는 키보드로
     const cell = cellAt(e.clientX, e.clientY);
     if (cell === "switch") {
-      console.log("악기 묶음 바꾸기 (아직 기능 없음)");
+      switchBank();
       return;
     }
     if (trigger(cell)) ripple(e.clientX, e.clientY);
@@ -226,7 +266,7 @@
   document.addEventListener("dblclick", (e) => e.preventDefault());
   document.addEventListener("gesturestart", (e) => e.preventDefault());
 
-  Promise.all(window.PADS.map(loadPad))
+  Promise.all(banks.flatMap((b) => b.defs.map((def) => loadPad(b, def))))
     .then(warmUp)
     .catch((err) => {
       const hint = location.protocol === "file:" ? " (소리를 바꿨다면 python3 make_sounds_js.py 를 한 번 실행해 주세요)" : "";
