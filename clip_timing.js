@@ -1,0 +1,31 @@
+// 단청 영상마다: hold = 무늬가 다 피어 있는 마지막 순간(초), end = 무늬가 다 사라지는 순간(초).
+// 소리가 영상보다 길면 hold 에서 멈춰 소리를 따라 숨 쉬다가, 소리가 끝날 때 맞춰 end 까지 사라진다.
+// tools 로 영상의 프레임별 먹(색) 양을 재서 만든 값.
+window.CLIP_TIMING = {
+  "dc01_lotus_bloom": { hold: 3.00, end: 4.00 },
+  "dc02_wave_sweep": { hold: 1.53, end: 2.10 },
+  "dc03_tile_medallions": { hold: 2.73, end: 4.00 },
+  "dc04_meoricho_band": { hold: 2.00, end: 2.53 },
+  "dc05_hex_lattice": { hold: 2.37, end: 2.87 },
+  "dc06_cloud_scroll": { hold: 2.80, end: 4.00 },
+  "dc07_aja_lattice": { hold: 1.47, end: 1.93 },
+  "dc08_jewel_spiral": { hold: 2.80, end: 4.00 },
+  "dc09_rainbow_ripple": { hold: 0.97, end: 2.70 },
+  "dc10_twin_lotus": { hold: 2.87, end: 4.00 },
+  "dc11_star_rosette": { hold: 2.73, end: 4.00 },
+  "dc12_soran_grid": { hold: 2.27, end: 4.00 },
+  "dc13_pillar_bands": { hold: 2.07, end: 2.50 },
+  "dc14_maehwa_scatter": { hold: 2.67, end: 4.00 },
+  "dc15_wave_rise": { hold: 2.10, end: 2.60 },
+  "dc16_arch_garland": { hold: 1.90, end: 4.00 },
+  "dc17_clock_petals": { hold: 2.77, end: 4.00 },
+  "dc18_octagon_ripple": { hold: 2.77, end: 4.00 },
+  "dc19_lotus_ring": { hold: 2.80, end: 4.00 },
+  "dc20_diamond_chain": { hold: 2.20, end: 4.00 },
+  "dc21_fret_frame": { hold: 2.67, end: 4.00 },
+  "dc22_falling_petals": { hold: 2.03, end: 4.00 },
+  "dc23_sun_rays": { hold: 1.90, end: 2.60 },
+  "dc24_cloud_drift": { hold: 1.80, end: 4.00 },
+  "dc25_hexa_cross": { hold: 2.70, end: 4.00 },
+  "dc26_corner_fans": { hold: 2.13, end: 2.53 },
+};
