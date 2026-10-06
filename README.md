@@ -44,32 +44,32 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 
 | 키 | 소리 | 영상 |
 |---|---|---|
-| a | 꽹과리 지 (강) | v2/ink09b_splat |
-| s | 꽹과리 게르르르 (강) | v2/ink07_slashes |
-| d | 징 (강) | v2/ink20_gray_enso |
-| f | 징 (약) | v2/ink08_enso_wash |
-| g | 장구 덩 (강) | v2/ink13_slash |
-| t | 장구 덩 (중) | v2/ink15_gray_arc |
-| h | 장구 쿵 (강) | v2/ink01_bloom |
-| y | 장구 쿵 (중) | v2/ink06_wash |
-| j | 장구 덕 (강) | v2/ink09c_splat_tendril |
-| u | 장구 덕 (중) | v2/ink05_splash |
-| k | 장구 기덕 (강) | v2/ink12_arch |
-| i | 장구 기덕 (중) | v2/ink09a_stains |
-| l | 장구 더 (강) | v2/ink03_stroke |
-| o | 장구 더 (중) | v2/ink09d_wash_drip |
-| p | 장구 더러러러 (강) | v2/ink02_scatter |
-| z | 추임새 얼쑤 | v2/ink10_dry_loop |
-| x | 추임새 얼씨구 | v2/ink11_zigzag |
-| c | 추임새 좋다 | v2/ink14_swirl |
-| q | 꽹과리 객 (강) | v2/ink19_c_enso |
-| w | 꽹과리 갯 (강) | v2/ink04_enso |
-| e | 북 노고 (중) | v3/ink22_peony_bloom |
-| r | 북 절고 (중) | v3/ink21_mountain_mist |
-| v | 북 노고 (강) | v3/ink23_ink_circles |
-| b | 북 절고 (강) | v2/ink17_landscape |
-| n | 추임새 쑤 | v2/ink16_stains |
-| m | 추임새 어이 | v2/ink18_mist |
+| a | 꽹과리 지 (강) | sumuk/ji_a |
+| s | 꽹과리 게르르르 (강) | sumuk/roll_s |
+| d | 징 (강) | sumuk/jing_d |
+| f | 징 (약) | sumuk/jing_f |
+| g | 장구 덩 (강) | sumuk/deong_g |
+| t | 장구 덩 (중) | sumuk/deong_t |
+| h | 장구 쿵 (강) | sumuk/kung_h |
+| y | 장구 쿵 (중) | sumuk/kung_y |
+| j | 장구 덕 (강) | sumuk/deok_j |
+| u | 장구 덕 (중) | sumuk/deok_u |
+| k | 장구 기덕 (강) | sumuk/gideok_k |
+| i | 장구 기덕 (중) | sumuk/gideok_i |
+| l | 장구 더 (강) | sumuk/deo_l |
+| o | 장구 더 (중) | sumuk/deo_o |
+| p | 장구 더러러러 (강) | sumuk/deororeo_p |
+| z | 추임새 얼쑤 | sumuk/eolssu_z |
+| x | 추임새 얼씨구 | sumuk/eolssigu_x |
+| c | 추임새 좋다 | sumuk/jota_c |
+| q | 꽹과리 객 (강) | sumuk/gaek_q |
+| w | 꽹과리 갯 (강) | sumuk/gaet_w |
+| e | 북 노고 (중) | sumuk/nogo_e |
+| r | 북 절고 (중) | sumuk/jeolgo_r |
+| v | 북 노고 (강) | sumuk/nogo_v |
+| b | 북 절고 (강) | sumuk/jeolgo_b |
+| n | 추임새 쑤 | sumuk/ssu_n |
+| m | 추임새 어이 | sumuk/eoi_m |
 
 모든 키는 누를 때마다 영상이 좌우·상하로 무작위 반전된다 (`pads.js`의 `flip: true`).
 
@@ -110,7 +110,7 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 
 `pads.js`의 한 줄이 패드 하나다 (뱅크마다 `pads` 목록이 따로 있다). `sounds/`나 `clips/`에 파일을 넣고 경로만 바꾸면 된다.
 
-- 영상: 1920x1080, 한지 배경 위 먹, 마지막 프레임이 빈 종이인 클립 (`clips/` ink01~06, `clips/v2/` ink01~20, `clips/v3/` ink21~23 모두 같은 형식).
+- 영상: 1920x1080, 한지 배경 위 먹, 마지막 프레임이 빈 종이인 클립 (`clips/` ink01~06, `clips/v2/` ink01~20, `clips/v3/` ink21~23, `clips/sumuk/` 모두 같은 형식). 뱅크 1은 지금 `clips/sumuk/`(소리 파형으로 만든 영상)을 쓴다.
   화면에서는 한지 배경(`assets/hanji.jpg`) 위에 '어둡게(darken)'로 겹쳐서 먹만 보이게 한다.
 - 소리를 바꾸거나 추가했으면 `python3 make_sounds_js.py`를 한 번 실행한다. 파일로 바로 열 때는
   브라우저가 음원 파일을 직접 못 읽어서, 음원을 `sounds.js`에 담아 두고 쓰기 때문이다.
