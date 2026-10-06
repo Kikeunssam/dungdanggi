@@ -4,13 +4,13 @@
     python3 tools/dancheong.py dc01 dc03  # 원하는 영상만
 
 출력
-- assets/giwa.jpg       : 검회색 기와무늬 배경 (단순화)
-- clips/dancheong/*.mp4 : 1920x1080, 30fps, 4초. 검은 바탕 위 단청 문양.
-  화면에서는 기와 배경 위에 '밝게(lighten)'로 겹치므로 검은 부분은 사라지고 색만 남는다.
-  첫 프레임과 마지막 프레임은 완전한 검정이라 다시 눌러도 끊김이 없다.
+- assets/hanji_aged.jpg : 수묵 뱅크보다 누렇고 바랜 한지 배경
+- clips/dancheong/*.mp4 : 1920x1080, 30fps, 4초. 흰 바탕 위 단청 문양.
+  화면에서는 한지 배경 위에 수묵과 같은 '어둡게(darken)'로 겹치므로 흰 부분은 한지가 되고 색만 남는다.
+  첫 프레임과 마지막 프레임은 완전한 흰색이라 다시 눌러도 끊김이 없다.
 
-참고 이미지를 베끼지 않고, 단청의 기본 요소(연화 꽃잎의 겹겹 빛넣기 띠, 물결 비늘, 머리초 무지개 띠,
-매화점)를 단청 색으로 새로 그렸다. numpy + OpenCV + ffmpeg 필요.
+참고 이미지를 베끼지 않고, 단청의 기본 요소(연화 꽃잎의 겹겹 빛넣기 띠, 물결 비늘, 네모 문양판,
+머리초 무지개 반원과 매화점 줄)를 단청 색으로 새로 그렸다. numpy + OpenCV + ffmpeg 필요.
 """
 import math
 import pathlib
@@ -23,7 +23,6 @@ import numpy as np
 W, H, FPS, DUR = 1920, 1080, 30, 4.0
 N = int(FPS * DUR)
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SS = 2  # 안티에일리어싱용 내부 배율은 쓰지 않고 LINE_AA로 처리, 좌표만 고정소수점
 SHIFT = 4
 ONE = 1 << SHIFT
 
@@ -153,20 +152,30 @@ SCHEMES = [
 ]
 
 
+MUK = rgb("23262b")       # 먹(검정)
+
+
 def blank():
-    return np.zeros((H, W, 3), np.uint8)
+    return np.full((H, W, 3), 255, np.uint8)
 
 
 def dim(img, k):
+    """흰 바탕 쪽으로 옅어진다 (k=0 이면 완전한 흰색)."""
     if k >= 1:
         return img
-    return (img.astype(np.float32) * k).astype(np.uint8)
+    return (255 - (255 - img.astype(np.float32)) * k).astype(np.uint8)
 
 
-# ---------------------------------------------------------------- 영상 4개
+def over_white(pattern, mask):
+    """mask(0..1) 만큼만 무늬를 보이고 나머지는 흰 바탕."""
+    m = mask[..., None] if np.ndim(mask) == 2 else mask
+    return (255 - (255 - pattern.astype(np.float32)) * m).astype(np.uint8)
+
+
+# ---------------------------------------------------------------- 1. 연화문: 가운데서 피었다 진다
 
 def dc01_lotus_bloom(t):
-    """가운데에서 큰 연화문이 돌며 피었다가 살짝 커지며 사라진다."""
+    """끝이 뾰족한 연꽃잎 두 겹이 돌며 피었다가 살짝 커지며 옅어진다."""
     img = blank()
     if t < 0.02:
         return img
@@ -177,8 +186,9 @@ def dc01_lotus_bloom(t):
     return dim(img, fade_env(t))
 
 
+# ---------------------------------------------------------------- 2. 물결 비늘: 띠가 '삭' 쓸고 지나간다
+
 def wave_scales(cell=110):
-    """물결 비늘 무늬 한 장 (전체 화면 크기)."""
     img = blank()
     bands = [WHITE, NAVY, WHITE, SAMCHEONG, WHITE, SKY, PALE_B]
     rows = int(H / (cell * 0.5)) + 3
@@ -196,82 +206,163 @@ _WAVES = None
 
 
 def dc02_wave_sweep(t):
-    """물결 비늘 띠가 왼쪽에서 오른쪽으로 '삭' 쓸고 지나간다."""
     global _WAVES
     if _WAVES is None:
         _WAVES = wave_scales()
     x = np.arange(W, dtype=np.float32)[None, :]
     y = np.arange(H, dtype=np.float32)[:, None]
-    skew = (y - H / 2) * 0.35  # 살짝 기울어진 쓸기
+    skew = (y - H / 2) * 0.35
     soft = 140.0
-    head = -300 + (W + 700) * ease_out(t / 0.55)          # 나타나는 앞쪽 경계
-    tail = -300 + (W + 900) * ease_in_out((t - 1.1) / 1.4)  # 사라지는 뒤쪽 경계
+    head = -300 + (W + 700) * ease_out(t / 0.55)
+    tail = -300 + (W + 900) * ease_in_out((t - 1.1) / 1.4)
     m_in = np.clip((head - (x + skew)) / soft, 0, 1)
     m_out = np.clip(((x + skew) - tail) / soft, 0, 1) if t > 1.1 else 1.0
-    band = np.clip(1 - np.abs(y - H / 2) / 330, 0, 1) ** 0.6  # 가운데 가로 띠
-    mask = (m_in * m_out * np.minimum(band * 1.6, 1.0))
+    band = np.clip(1 - np.abs(y - H / 2) / 330, 0, 1) ** 0.6
+    mask = m_in * m_out * np.minimum(band * 1.6, 1.0)
     if t >= 3.0:
         mask = mask * 0
-    out = (_WAVES.astype(np.float32) * mask[..., None]).astype(np.uint8)
-    return out
+    return over_white(_WAVES, mask)
 
 
-_SPOTS = None
+# ---------------------------------------------------------------- 3. 네모 문양판: 둥근 꽃잎 원판이 차례로 톡톡
+
+def rounded_petals(img, c, n, r0, length, width, rot, bands):
+    for k in range(n):
+        a = rot + 2 * math.pi * k / n
+        deg = math.degrees(a)
+        for i, col in enumerate(bands):
+            s = 1 - 0.78 * i / len(bands)
+            mid = r0 + length / 2
+            pc = (c[0] + math.cos(a) * mid, c[1] + math.sin(a) * mid)
+            pts = cv2.ellipse2Poly((int(pc[0] * 8), int(pc[1] * 8)),
+                                   (max(1, int(length / 2 * s * 8)), max(1, int(width / 2 * s * 8))),
+                                   int(deg), 0, 360, 6)
+            poly(img, pts / 8.0, col)
 
 
-def dc03_scatter_blooms(t):
-    """작은 연화·매화가 여기저기 차례로 톡톡 피었다가 진다."""
-    global _SPOTS
-    if _SPOTS is None:
-        rng = np.random.default_rng(7)
-        spots = []
-        tries = 0
-        while len(spots) < 11 and tries < 2000:
-            tries += 1
-            r = rng.uniform(90, 190)
-            c = (rng.uniform(r + 40, W - r - 40), rng.uniform(r + 30, H - r - 30))
-            if all(math.hypot(c[0] - s[0][0], c[1] - s[0][1]) > (r + s[1]) * 0.95 for s in spots):
-                spots.append((c, r, len(spots) * 0.075 + rng.uniform(0, 0.03), rng.uniform(0, 6.28), rng.integers(4)))
-        _SPOTS = spots
+def square(img, c, half, rot, color):
+    ca, sa = math.cos(rot), math.sin(rot)
+    pts = [(c[0] + (dx * ca - dy * sa) * half, c[1] + (dx * sa + dy * ca) * half)
+           for dx, dy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+    poly(img, pts, color)
+
+
+TILES = [
+    # 네모 테두리 띠, 원 띠, 꽃잎 띠, 꽃술, 꽃잎 수
+    ([NOK, WHITE, YANGNOK, WHITE], [WHITE, NAVY, SKY], [WHITE, JU, PINK, WHITE], [WHITE, HWANG, JU], 8),
+    ([DAJA, WHITE, JU, HWANG], [WHITE, NOK, PALE_G], [WHITE, SAMCHEONG, SKY, PALE_B], [WHITE, JU, WHITE], 6),
+    ([SAMCHEONG, WHITE, SKY, WHITE], [WHITE, DAJA, PINK], [WHITE, YANGNOK, PALE_G, WHITE], [WHITE, ORANGE, HWANG], 12),
+    ([MUK, WHITE, PURPLE, WHITE], [WHITE, HWANG, ORANGE], [WHITE, JU, PINK], [WHITE, SAMCHEONG, WHITE], 8),
+    ([NOK, HWANG, YANGNOK, WHITE], [WHITE, JU, PINK], [WHITE, PURPLE, PALE_B, WHITE], [WHITE, HWANG, JU], 6),
+]
+
+
+def draw_tile(img, c, size, prog, rot, spec):
+    sq, circ, petal, core, n = spec
+    half = size / 2
+    p1 = ease_out(prog / 0.45)
+    if p1 <= 0:
+        return
+    for i, col in enumerate(sq):
+        square(img, c, half * p1 * (1 - 0.07 * i), rot, col)
+    # 네 귀퉁이 작은 점
+    for dx, dy in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+        ca, sa = math.cos(rot), math.sin(rot)
+        k = half * p1 * 0.70
+        disc(img, (c[0] + (dx * ca - dy * sa) * k, c[1] + (dx * sa + dy * ca) * k), half * 0.07 * p1, sq[0])
+    p2 = ease_out((prog - 0.12) / 0.55)
+    if p2 > 0:
+        R = half * 0.66 * p2
+        for i, col in enumerate(circ):
+            disc(img, c, R * (1 - 0.12 * i), col)
+    p3 = ease_out((prog - 0.28) / 0.7)
+    if p3 > 0:
+        R = half * 0.62
+        rounded_petals(img, c, n, R * 0.22 * p3, R * 0.72 * p3, R * (1.9 / n + 0.12) * p3 * 1.6, rot * 2, petal)
+        for i, col in enumerate(core):
+            disc(img, c, R * 0.26 * p3 * (1 - i / (len(core) + 0.6)), col)
+
+
+def dc03_tile_medallions(t):
+    """네모 문양판 다섯 장이 왼쪽부터 차례로 돌며 펼쳐졌다가 옅어진다."""
     img = blank()
-    for c, r, t0, rot0, sch in _SPOTS:
-        lt = t - t0
+    size, gap = 350, 22
+    x0 = W / 2 - 2 * (size + gap)
+    for i, spec in enumerate(TILES):
+        lt = t - 0.09 * i
         if lt <= 0:
             continue
-        prog = ease_out(lt / 0.45)
-        draw_lotus(img, c, r, prog, rot0 + 0.3 * (1 - prog), SCHEMES[int(sch)])
+        prog = ease_out(lt / 0.7)
+        y = H / 2 + (40 if i % 2 else -40)
+        draw_tile(img, (x0 + i * (size + gap), y), size, prog, 0.6 * (1 - prog), spec)
     return dim(img, fade_env(t, 2.3, 3.6))
 
 
-def dc04_rainbow_ripple(t):
-    """머리초의 무지개 띠가 동그란 물결처럼 바깥으로 퍼져 나간다."""
+# ---------------------------------------------------------------- 4. 머리초 띠: 무지개 반원과 줄무늬가 펼쳐졌다 닫힌다
+
+def meoricho_band():
+    """가로 띠 한 장: 가운데 무지개 반원 줄, 위아래로 매화점 검은 줄과 색 줄무늬 (위아래 대칭)."""
+    hb = 270  # 띠 반 높이
+    half = np.full((hb, W, 3), 255, np.uint8)
+    # 가운데 선(맨 아래 y=hb)에 걸친 무지개 반원
+    cell = 230
+    arcs = [JU, ORANGE, HWANG, YANGNOK, SKY, SAMCHEONG, PURPLE]
+    for col in range(-1, W // cell + 2):
+        cx = col * cell + cell / 2
+        for i, c in enumerate(arcs):
+            r = cell * 0.62 * (1 - i / (len(arcs) + 0.5))
+            disc(half, (cx, hb + 2), r + 3, WHITE)
+            disc(half, (cx, hb + 2), r, c)
+    # 위쪽: 색 줄무늬 + 매화점 검은 줄
+    y = 0
+    for h, c in ((10, MUK), (14, JU), (6, WHITE), (14, YANGNOK), (6, WHITE), (12, HWANG), (6, WHITE)):
+        half[y:y + h] = c
+        y += h
+    strip = 56
+    half[y:y + strip] = MUK
+    cy = y + strip / 2
+    for k in range(W // 110 + 1):
+        cx = k * 110 + 55
+        for j in range(5):
+            a = -math.pi / 2 + 2 * math.pi * j / 5
+            disc(half, (cx + math.cos(a) * 11, cy + math.sin(a) * 11), 7, WHITE)
+        disc(half, (cx, cy), 5, HWANG)
+    y += strip
+    for h, c in ((6, WHITE), (12, NAVY), (6, WHITE)):
+        half[y:y + h] = c
+        y += h
+    return np.concatenate([half, half[::-1]], 0)
+
+
+_BAND = None
+
+
+def dc04_meoricho_band(t):
+    global _BAND
+    if _BAND is None:
+        _BAND = meoricho_band()
     img = blank()
-    c = (W / 2, H / 2)
-    bands = [JU, ORANGE, HWANG, YANGNOK, SKY, SAMCHEONG, PURPLE]
-    band_w = 26
-    gap = 6
-    stack = len(bands) * (band_w + gap)
-    for wave in range(2):
-        lt = t - wave * 0.35
-        if lt <= 0:
-            continue
-        r_front = 40 + 1250 * ease_out(lt / 2.2)
-        for i, col in enumerate(bands):
-            r = r_front - i * (band_w + gap)
-            if r > 0:
-                ring(img, c, r, band_w + 2, WHITE)
-                ring(img, c, r, band_w - 4, col)
-    # 가운데 작은 꽃
-    prog = ease_out(t / 0.5)
-    draw_lotus(img, c, 150, prog, 0.2 * t, SCHEMES[1])
-    return dim(img, fade_env(t, 2.2, 3.6))
+    bh = _BAND.shape[0]
+    y0 = (H - bh) // 2
+    # 가운데에서 좌우로 '삭' 펼쳐지고, 나중에 위아래로 접히며 닫힌다
+    open_w = (W / 2 + 60) * ease_out(t / 0.45)
+    close = ease_in_out((t - 1.7) / 0.9)
+    x = np.arange(W, dtype=np.float32)[None, :]
+    yy = np.arange(bh, dtype=np.float32)[:, None]
+    m = np.clip((open_w - np.abs(x - W / 2)) / 40, 0, 1)
+    vis_h = bh / 2 * (1 - close)
+    m = m * np.clip((vis_h - np.abs(yy - bh / 2)) / 12, 0, 1)
+    if t >= 2.7:
+        m = m * 0
+    img[y0:y0 + bh] = over_white(_BAND, m)
+    return img
 
 
 CLIPS = {
     "dc01_lotus_bloom": dc01_lotus_bloom,
     "dc02_wave_sweep": dc02_wave_sweep,
-    "dc03_scatter_blooms": dc03_scatter_blooms,
-    "dc04_rainbow_ripple": dc04_rainbow_ripple,
+    "dc03_tile_medallions": dc03_tile_medallions,
+    "dc04_meoricho_band": dc04_meoricho_band,
 }
 
 
@@ -290,32 +381,23 @@ def render(name, fn, out_dir):
     print("wrote", out.relative_to(ROOT))
 
 
-# ---------------------------------------------------------------- 기와 배경
+# ---------------------------------------------------------------- 바랜 한지 배경
 
-def giwa_background():
-    """검회색 기와 지붕을 위에서 본 단순한 무늬: 둥근 골이 세로로 늘어서고 가로 줄마다 이음새."""
+def aged_hanji():
+    """수묵 뱅크의 한지(assets/hanji.jpg)를 더 누렇고 바랜 느낌으로."""
+    src = cv2.imread(str(ROOT / "assets" / "hanji.jpg")).astype(np.float32)
+    src = cv2.resize(src, (W, H))
+    mean = src.mean((0, 1), keepdims=True)
+    img = mean + (src - mean) * 0.8                     # 대비를 조금 낮춰 바랜 느낌
+    img = img * np.array([0.80, 0.93, 0.99], np.float32)  # BGR: 파랑을 빼서 누렇게
+    rng = np.random.default_rng(11)
+    stain = cv2.resize(rng.normal(0, 1, (9, 16)).astype(np.float32), (W, H), interpolation=cv2.INTER_CUBIC)
+    stain = cv2.GaussianBlur(stain, (0, 0), 60)
+    stain = (stain - stain.min()) / (stain.max() - stain.min())
+    img = img * (1 - 0.07 * stain[..., None] * np.array([1.4, 1.0, 0.6], np.float32))  # 군데군데 누런 얼룩
     y, x = np.mgrid[0:H, 0:W].astype(np.float32)
-    row_h = 216.0
-    col_w = 92.0
-    row = np.floor(y / row_h)
-    fy = (y - row * row_h) / row_h  # 줄 안에서 0..1
-    # 기와골이 줄마다 살짝 휘어진다
-    bend = 26 * np.sin(fy * np.pi) * np.where(row % 2 == 0, 1, -1) + 14 * np.sin(x / 300 + row * 1.7)
-    u = ((x + bend + (row % 2) * col_w * 0.5) / col_w) % 1.0
-    # 수키와(볼록)와 암키와(오목)를 번갈아: 원통 음영
-    shade = np.sin(u * np.pi) ** 0.7
-    # 아래쪽 이음새 그림자 + 위쪽 끝 하이라이트
-    seam = np.clip((fy - 0.88) / 0.12, 0, 1) ** 1.5
-    lip = np.clip((0.06 - fy) / 0.06, 0, 1)
-    v = 34 + 42 * shade - 16 * seam + 6 * lip
-    # 아주 약한 결
-    rng = np.random.default_rng(3)
-    grain = cv2.GaussianBlur(rng.normal(0, 1, (H, W)).astype(np.float32), (0, 0), 1.2)
-    v = v + grain * 2.5
-    # 가장자리 비네팅
-    vig = 1 - 0.25 * (((x - W / 2) / (W / 2)) ** 2 + ((y - H / 2) / (H / 2)) ** 2)
-    v = np.clip(v * vig, 0, 255)
-    img = np.stack([v * 1.02, v * 1.0, v * 0.97], -1)  # 아주 살짝 푸른 먹빛
+    vig = 1 - 0.12 * (((x - W / 2) / (W / 2)) ** 2 + ((y - H / 2) / (H / 2)) ** 2)
+    img = img * vig[..., None] * np.array([0.97, 0.99, 1.0], np.float32)
     return np.clip(img, 0, 255).astype(np.uint8)
 
 
@@ -323,8 +405,8 @@ def main(names):
     out_dir = ROOT / "clips" / "dancheong"
     out_dir.mkdir(parents=True, exist_ok=True)
     if not names:
-        cv2.imwrite(str(ROOT / "assets" / "giwa.jpg"), giwa_background(), [cv2.IMWRITE_JPEG_QUALITY, 90])
-        print("wrote assets/giwa.jpg")
+        cv2.imwrite(str(ROOT / "assets" / "hanji_aged.jpg"), aged_hanji(), [cv2.IMWRITE_JPEG_QUALITY, 90])
+        print("wrote assets/hanji_aged.jpg")
     for name, fn in CLIPS.items():
         if not names or any(name.startswith(n) for n in names):
             render(name, fn, out_dir)
