@@ -1,5 +1,7 @@
 (() => {
-  const VIDEOS_PER_PAD = 4; // 같은 키를 빠르게 연타해도 겹쳐 보이도록 키마다 영상 4개를 돌려 쓴다
+  // 브라우저는 한꺼번에 준비해 둘 수 있는 영상 수에 한계가 있어서(키가 많으면 일부가 안 나온다),
+  // 키마다 영상은 1개만 미리 준비하고, 연타로 겹칠 때만 잠깐 더 만들었다가 끝나면 치운다.
+  const VIDEOS_PER_PAD = 4; // 한 키에서 동시에 겹쳐 보일 수 있는 최대 개수
   const VOICES_PER_PAD = 8; // 같은 소리가 동시에 울릴 수 있는 최대 개수
 
   const stage = document.getElementById("stage");
@@ -29,20 +31,33 @@
   async function loadPad(def) {
     const buffer = await audio.decodeAudioData(await loadSoundBytes(def.sound));
 
-    const videos = [];
-    for (let i = 0; i < VIDEOS_PER_PAD; i++) {
-      const v = document.createElement("video");
-      v.src = def.clip; // 영상은 파일로 열어도(file://) 바로 재생된다
-      v.muted = true;
-      v.playsInline = true;
-      v.preload = "auto";
-      v.startedAt = 0;
-      v.addEventListener("ended", () => v.classList.remove("on"));
-      stage.appendChild(v);
-      v.load();
-      videos.push(v);
-    }
-    pads.set(def.key, { def, buffer, videos, voices: [], lastFlip: 0 });
+    const pad = { def, buffer, videos: [], voices: [], lastFlip: 0 };
+    addVideo(pad);
+    pads.set(def.key, pad);
+  }
+
+  function addVideo(pad) {
+    const v = document.createElement("video");
+    v.src = pad.def.clip; // 영상은 파일로 열어도(file://) 바로 재생된다
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = "auto";
+    v.startedAt = 0;
+    v.addEventListener("ended", () => {
+      v.classList.remove("on");
+      // 첫 번째(미리 준비한) 영상만 남기고, 연타 때 더 만든 영상은 치워서 디코더를 돌려준다
+      if (pad.videos[0] !== v) {
+        pad.videos.splice(pad.videos.indexOf(v), 1);
+        v.removeAttribute("src");
+        v.load();
+        v.remove();
+      }
+    });
+    v.addEventListener("error", () => console.warn("영상을 열 수 없음:", pad.def.key, pad.def.clip, v.error));
+    stage.appendChild(v);
+    v.load();
+    pad.videos.push(v);
+    return v;
   }
 
   function playSound(pad) {
@@ -70,13 +85,17 @@
   function playVideo(pad) {
     // 쉬고 있는 영상을 먼저 쓰고, 모두 재생 중이면 가장 오래된 것을 처음부터 다시 튼다.
     let v = pad.videos.find((x) => !x.classList.contains("on"));
+    if (!v && pad.videos.length < VIDEOS_PER_PAD) v = addVideo(pad);
     if (!v) v = pad.videos.reduce((a, b) => (a.startedAt <= b.startedAt ? a : b));
     v.startedAt = performance.now();
     v.style.zIndex = String(++zTop);
     if (pad.def.flip) v.style.transform = randomFlip(pad);
     v.currentTime = 0;
     v.classList.add("on");
-    v.play().catch(() => v.classList.remove("on"));
+    v.play().catch((err) => {
+      v.classList.remove("on");
+      console.warn("영상 재생 실패:", pad.def.key, pad.def.clip, err);
+    });
   }
 
   function trigger(key) {
