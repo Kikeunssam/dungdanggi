@@ -1,5 +1,6 @@
 // 뱅크(악기 묶음) 여러 개. PC는 스페이스바, 터치는 오른쪽 아래 칸으로 뱅크를 바꾼다.
 // 뱅크마다 배경 그림과 영상 겹치는 방식(blend)을 정한다:
+//   multiply = 종이에 먹이 스미듯 겹친다 (흰 바탕은 사라지고, 옅은 담묵·담채도 종이색과 섞여 자연스럽다)
 //   darken  = 밝은 종이 위 먹·색 (흰 바탕·종이색은 사라지고 그림만 남는다)
 //   lighten = 어두운 배경 위 색 (검은 바탕은 사라지고 색만 남는다) — 검은 바탕 클립을 쓸 때
 // 패드 한 줄 = 키 하나. sound는 빼도 된다 (영상만 나온다).
@@ -8,8 +9,8 @@
 window.BANKS = [
   {
     name: "수묵",
-    background: "assets/hanji.jpg",
-    blend: "darken",
+    background: "assets/hanji_aged.jpg",
+    blend: "multiply",
     pads: [
       { key: "a", name: "꽹과리 지 (강)",      sound: "sounds/kkwaenggwari_ji_strong.wav",   clip: "clips/sumuk/ji_a.mp4", flip: true },
       { key: "s", name: "꽹과리 게르르르 (강)", sound: "sounds/kkwaenggwari_roll_strong.wav", clip: "clips/sumuk/roll_s.mp4", flip: true },
@@ -41,7 +42,7 @@ window.BANKS = [
   },
   {
     name: "단청",
-    background: "assets/hanji_aged.jpg",
+    background: "assets/hanji.jpg",
     blend: "darken",
     pads: [
       { key: "a", name: "단소 8 · 연꽃", sound: "sounds/danso_8.wav", clip: "clips/dancheong/dc01_lotus_bloom.mp4", flip: true },

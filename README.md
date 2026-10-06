@@ -32,8 +32,8 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 
 | 뱅크 | 배경 | 영상 겹치기 | 패드 |
 |---|---|---|---|
-| 1 수묵 | 한지 (`assets/hanji.jpg`) | darken (먹만 남음) | 아래 26개 키, 소리+영상 |
-| 2 단청 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | 26개 키 모두 관악기·대금 소리 + 단청 문양 영상 (`clips/dancheong/` dc01~dc26) — 아래 표 |
+| 1 수묵 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | multiply (종이에 먹이 스미듯 겹침) | 아래 26개 키, 소리+영상 |
+| 2 단청 | 한지 (`assets/hanji.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | 26개 키 모두 관악기·대금 소리 + 단청 문양 영상 (`clips/dancheong/` dc01~dc26) — 아래 표 |
 
 `pads.js`의 `window.BANKS`에서 뱅크별로 패드를 적고,
 `sound`를 빼면 영상만 나오는 패드가 된다.
@@ -113,7 +113,7 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 `pads.js`의 한 줄이 패드 하나다 (뱅크마다 `pads` 목록이 따로 있다). `sounds/`나 `clips/`에 파일을 넣고 경로만 바꾸면 된다.
 
 - 영상: 1920x1080, 한지 배경 위 먹, 마지막 프레임이 빈 종이인 클립 (`clips/` ink01~06, `clips/v2/` ink01~20, `clips/v3/` ink21~23, `clips/sumuk/` 모두 같은 형식). 뱅크 1은 지금 `clips/sumuk/`(소리 파형으로 만든 영상)을 쓴다.
-  화면에서는 한지 배경(`assets/hanji.jpg`) 위에 '어둡게(darken)'로 겹쳐서 먹만 보이게 한다.
+  화면에서는 뱅크의 배경 위에 뱅크의 겹치기 방식(수묵: 곱하기 multiply, 단청: 어둡게 darken)으로 겹쳐서 그림만 보이게 한다.
 - 소리를 바꾸거나 추가했으면 `python3 make_sounds_js.py`를 한 번 실행한다. 파일로 바로 열 때는
   브라우저가 음원 파일을 직접 못 읽어서, 음원을 `sounds.js`에 담아 두고 쓰기 때문이다.
 - 소리: wav/mp3 등 브라우저가 읽는 형식. 앞쪽 무음은 잘라 두어야 누르는 순간 바로 소리가 난다
