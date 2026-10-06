@@ -33,9 +33,9 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 | 뱅크 | 배경 | 영상 겹치기 | 패드 |
 |---|---|---|---|
 | 1 수묵 | 한지 (`assets/hanji.jpg`) | darken (먹만 남음) | 아래 26개 키, 소리+영상 |
-| 2 단청 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | a 연꽃, s 물결, d 기와 문양, f 머리초 띠 (`clips/dancheong/`, 아직 소리 없음) |
+| 2 단청 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | 26개 키 모두 단청 문양 영상 (`clips/dancheong/` dc01~dc26, 아직 소리 없음) — 아래 표 |
 
-단청 뱅크의 다른 키는 아직 아무것도 하지 않는다. `pads.js`의 `window.BANKS`에서 뱅크별로 패드를 적고,
+`pads.js`의 `window.BANKS`에서 뱅크별로 패드를 적고,
 `sound`를 빼면 영상만 나오는 패드가 된다.
 
 ## 키 배치 (뱅크 1 수묵)
@@ -74,6 +74,37 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 모든 키는 누를 때마다 영상이 좌우·상하로 무작위 반전된다 (`pads.js`의 `flip: true`).
 
 한글 입력 상태에서도 키 자리 기준으로 동작한다.
+
+## 키 배치 (뱅크 2 단청)
+
+| 키 | 영상 |
+|---|---|
+| a | dc01_lotus_bloom (연꽃) |
+| s | dc02_wave_sweep (물결) |
+| d | dc03_tile_medallions (기와 문양) |
+| f | dc04_meoricho_band (머리초 띠) |
+| q | dc05_hex_lattice (육각 살창) |
+| w | dc06_cloud_scroll (구름 무늬) |
+| e | dc07_aja_lattice (아자 살창) |
+| r | dc08_jewel_spiral (보주 소용돌이) |
+| t | dc09_rainbow_ripple (오색 물결무늬) |
+| y | dc10_twin_lotus (쌍 연꽃) |
+| u | dc11_star_rosette (별꽃) |
+| i | dc12_soran_grid (소란 격자) |
+| o | dc13_pillar_bands (기둥 띠) |
+| p | dc14_maehwa_scatter (매화 흩날림) |
+| g | dc15_wave_rise (솟는 물결) |
+| h | dc16_arch_garland (아치 꽃줄) |
+| j | dc17_clock_petals (꽃잎 바퀴) |
+| k | dc18_octagon_ripple (팔각 물결) |
+| l | dc19_lotus_ring (연꽃 고리) |
+| z | dc20_diamond_chain (마름모 사슬) |
+| x | dc21_fret_frame (뇌문 틀) |
+| c | dc22_falling_petals (떨어지는 꽃잎) |
+| v | dc23_sun_rays (햇살) |
+| b | dc24_cloud_drift (흐르는 구름) |
+| n | dc25_hexa_cross (육각 십자) |
+| m | dc26_corner_fans (모서리 부채) |
 
 ## 소리·영상 바꾸기
 
