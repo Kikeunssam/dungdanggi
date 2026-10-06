@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="data:,">
   <title>둥당기</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -10,7 +13,10 @@
   <div id="stage"></div>
   <div id="notice" hidden></div>
   <script src="pads.js"></script>
-  <script src="sounds.js"></script>
+  <script>
+    // 파일로 바로 열 때만 음원 묶음(sounds.js)을 읽는다. 웹 서버로 열면 음원 파일을 직접 받는다.
+    if (location.protocol === "file:") document.write('<script src="sounds.js"><\/script>');
+  </script>
   <script src="app.js"></script>
 </body>
 </html>

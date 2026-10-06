@@ -11,9 +11,22 @@
 
 로컬 서버로 열어도 된다: 폴더에서 `python3 -m http.server 8000` 실행 후 http://localhost:8000
 
+## 휴대폰·태블릿 (터치)
+
+맥과 같은 Wi-Fi에서, 앱 폴더에서 아래 명령을 실행한 뒤 휴대폰 브라우저로 `http://<맥 IP>:8000/` 을 연다
+(맥 IP는 `ipconfig getifaddr en0`).
+
+```
+python3 -m http.server 8000 --bind 0.0.0.0
+```
+
+화면 전체가 보이지 않는 27칸으로 나뉜다 (가로 화면 9x3, 세로 화면 3x9). 칸 순서는 자판 순서
+q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번째 칸은 악기 묶음 바꾸기 자리(아직 기능 없음).
+여러 손가락으로 동시에 눌러도 각각 울린다. 휴대폰은 동시에 보이는 영상 수를 6개로 줄여 둔다.
+
 ## 키 배치
 
-가운데 줄 = 장구 강, 그 위 키 = 같은 장단 중, 아랫줄 = 추임새. a s d f는 꽹과리·징.
+가운데 줄 = 장구 강, 그 위 키 = 같은 장단 중, 아랫줄 = 추임새·북. a s d f q w는 꽹과리·징, e r(중)·v b(강)는 북, z x c n m은 추임새.
 
 | 키 | 소리 | 영상 |
 |---|---|---|
@@ -35,6 +48,14 @@
 | z | 추임새 얼쑤 | v2/ink10_dry_loop |
 | x | 추임새 얼씨구 | v2/ink11_zigzag |
 | c | 추임새 좋다 | v2/ink14_swirl |
+| q | 꽹과리 객 (강) | v2/ink19_c_enso |
+| w | 꽹과리 갯 (강) | v2/ink04_enso |
+| e | 북 노고 (중) | v3/ink22_peony_bloom |
+| r | 북 절고 (중) | v3/ink21_mountain_mist |
+| v | 북 노고 (강) | v3/ink23_ink_circles |
+| b | 북 절고 (강) | v2/ink17_landscape |
+| n | 추임새 쑤 | v2/ink16_stains |
+| m | 추임새 어이 | v2/ink18_mist |
 
 모든 키는 누를 때마다 영상이 좌우·상하로 무작위 반전된다 (`pads.js`의 `flip: true`).
 
@@ -44,7 +65,7 @@
 
 `pads.js`의 한 줄이 패드 하나다. `sounds/`나 `clips/`에 파일을 넣고 경로만 바꾸면 된다.
 
-- 영상: 1920x1080, 한지 배경 위 먹, 마지막 프레임이 빈 종이인 클립 (`clips/` ink01~06, `clips/v2/` ink01~20 모두 같은 형식).
+- 영상: 1920x1080, 한지 배경 위 먹, 마지막 프레임이 빈 종이인 클립 (`clips/` ink01~06, `clips/v2/` ink01~20, `clips/v3/` ink21~23 모두 같은 형식).
   화면에서는 한지 배경(`assets/hanji.jpg`) 위에 '어둡게(darken)'로 겹쳐서 먹만 보이게 한다.
 - 소리를 바꾸거나 추가했으면 `python3 make_sounds_js.py`를 한 번 실행한다. 파일로 바로 열 때는
   브라우저가 음원 파일을 직접 못 읽어서, 음원을 `sounds.js`에 담아 두고 쓰기 때문이다.

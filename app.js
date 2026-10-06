@@ -1,9 +1,14 @@
 (() => {
-  // 브라우저는 한꺼번에 준비해 둘 수 있는 영상 수에 한계가 있어서(키가 많으면 일부가 안 나온다),
-  // 키마다 영상은 1개만 미리 준비하고, 연타로 겹칠 때만 잠깐 더 만들었다가 끝나면 치운다.
+  // 브라우저가 한꺼번에 열어 둘 수 있는 영상 수에는 한계가 있다 (Chrome 데스크톱은 1080p 약 25개,
+  // 휴대폰·태블릿은 훨씬 적다). 그래서 영상 요소를 키마다 두지 않고, 전체에서 MAX_VIDEOS개만
+  // 만들어 돌려 쓴다. 쉬는 영상이 없으면 가장 오래된 영상을 가져와 새 클립을 연다.
+  const MOBILE = window.matchMedia("(pointer: coarse)").matches;
+  const MAX_VIDEOS = MOBILE ? 6 : 22; // 화면 전체에 동시에 둘 수 있는 영상 수
   const VIDEOS_PER_PAD = 4; // 한 키에서 동시에 겹쳐 보일 수 있는 최대 개수
   const VOICES_PER_PAD = 8; // 같은 소리가 동시에 울릴 수 있는 최대 개수
-  const MAX_VIDEOS = 22; // 화면 전체에 둘 수 있는 영상 수 (Chrome은 1080p 영상을 약 25개 넘게 동시에 열면 일부를 못 연다)
+
+  // 터치 화면 칸 순서 (가로 9x3, 세로 3x9). 27번째 칸은 악기 묶음 바꾸기 자리 (아직 기능 없음).
+  const GRID = "qwertyuiopasdfghjklzxcvbnm".split("").concat("switch");
 
   const stage = document.getElementById("stage");
   const notice = document.getElementById("notice");
@@ -11,77 +16,82 @@
   const master = audio.createGain();
   master.connect(audio.destination);
 
-  const pads = new Map(); // key -> { buffer, videos, voices }
+  const pads = new Map(); // key -> { def, buffer, voices, lastFlip }
+  const videos = []; // 전체 영상 요소 (최대 MAX_VIDEOS개)
   let zTop = 0;
-  let videoCount = 0;
+  const stats = (window.dungdanggiStats = { triggers: 0, voices: 0 }); // 테스트용 숫자
 
   function showNotice(text) {
     notice.textContent = text;
     notice.hidden = false;
   }
 
-  // index.html을 파일로 바로 열면 브라우저가 fetch를 막으므로,
-  // sounds.js에 미리 담아 둔 음원 데이터를 먼저 쓰고 없을 때만 fetch한다.
+  // 웹 서버(http)로 열면 음원 파일을 바로 받는다.
+  // index.html을 파일로 바로 열면 브라우저가 fetch를 막으므로 sounds.js에 담아 둔 데이터를 쓴다.
   async function loadSoundBytes(path) {
-    const b64 = window.SOUND_DATA && window.SOUND_DATA[path];
+    const b64 = location.protocol === "file:" && window.SOUND_DATA && window.SOUND_DATA[path];
     if (b64) return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
     const res = await fetch(path);
     if (!res.ok) throw new Error(`${path} (${res.status})`);
     return res.arrayBuffer();
   }
 
-  async function loadPad(def) {
-    const buffer = await audio.decodeAudioData(await loadSoundBytes(def.sound));
-
-    const pad = { def, buffer, videos: [], voices: [], lastFlip: 0 };
-    addVideo(pad);
-    pads.set(def.key, pad);
+  function decode(bytes) {
+    // 옛 Safari는 Promise 형태의 decodeAudioData를 지원하지 않는다
+    return new Promise((resolve, reject) => audio.decodeAudioData(bytes, resolve, reject));
   }
 
-  function addVideo(pad) {
+  async function loadPad(def) {
+    const buffer = await decode(await loadSoundBytes(def.sound));
+    pads.set(def.key, { def, buffer, voices: [], lastFlip: 0 });
+  }
+
+  // ---- 영상 ----
+
+  function createVideo() {
     const v = document.createElement("video");
-    v.src = pad.def.clip; // 영상은 파일로 열어도(file://) 바로 재생된다
     v.muted = true;
     v.playsInline = true;
-    v.preload = "auto";
+    v.setAttribute("playsinline", "");
+    v.setAttribute("muted", "");
+    v.preload = MOBILE ? "metadata" : "auto";
     v.startedAt = 0;
-    // 첫 번째(미리 준비한) 영상만 남기고, 연타 때 더 만든 영상은 치워서 디코더를 돌려준다
-    const release = () => {
-      v.classList.remove("on");
-      if (pad.videos[0] !== v && pad.videos.includes(v)) {
-        pad.videos.splice(pad.videos.indexOf(v), 1);
-        videoCount--;
-        v.removeAttribute("src");
-        v.load();
-        v.remove();
-      }
-    };
-    v.addEventListener("ended", release);
+    v.pad = null;
+    v.addEventListener("ended", () => v.classList.remove("on"));
     v.addEventListener("error", () => {
-      if (!v.getAttribute("src")) return; // 치우면서 src를 지운 경우
-      console.warn("영상을 열 수 없음:", pad.def.key, pad.def.clip, v.error);
-      // 열지 못한 영상이 화면에 '재생 중'으로 남아 키가 먹통이 되지 않도록 정리한다
-      release();
-      if (pad.videos[0] === v) setTimeout(() => v.load(), 500); // 미리 준비한 영상은 다시 연다
+      if (!v.getAttribute("src")) return;
+      console.warn("영상을 열 수 없음:", v.pad && v.pad.def.key, v.getAttribute("src"), v.error);
+      // 열지 못한 영상이 '재생 중'으로 남아 키가 먹통이 되지 않도록 비워 둔다 (다음에 다시 연다)
+      v.classList.remove("on");
+      v.pad = null;
+      v.removeAttribute("src");
+      v.load();
     });
     stage.appendChild(v);
-    videoCount++;
-    v.load();
-    pad.videos.push(v);
+    videos.push(v);
     return v;
   }
 
-  function playSound(pad) {
-    const src = audio.createBufferSource();
-    src.buffer = pad.buffer;
-    src.connect(master);
-    src.start();
-    pad.voices.push(src);
-    src.onended = () => {
-      const i = pad.voices.indexOf(src);
-      if (i >= 0) pad.voices.splice(i, 1);
-    };
-    if (pad.voices.length > VOICES_PER_PAD) pad.voices.shift().stop();
+  function assign(v, pad) {
+    if (v.pad === pad && v.getAttribute("src")) return;
+    v.pad = pad;
+    v.src = pad.def.clip;
+    v.load();
+  }
+
+  function oldest(list) {
+    return list.reduce((a, b) => (a.startedAt <= b.startedAt ? a : b));
+  }
+
+  function pickVideo(pad) {
+    const mine = videos.filter((v) => v.pad === pad);
+    const idleMine = mine.find((v) => !v.classList.contains("on"));
+    if (idleMine) return idleMine;
+    if (mine.length >= VIDEOS_PER_PAD) return oldest(mine);
+    if (videos.length < MAX_VIDEOS) return createVideo();
+    const idle = videos.filter((v) => !v.classList.contains("on"));
+    if (idle.length) return oldest(idle); // 다른 키가 쓰던 쉬는 영상을 가져온다
+    return oldest(videos); // 모두 재생 중이면 가장 오래된 것을 끊는다
   }
 
   const FLIPS = ["none", "scaleX(-1)", "scaleY(-1)", "scale(-1, -1)"];
@@ -94,37 +104,82 @@
   }
 
   function playVideo(pad) {
-    // 쉬고 있는 영상을 먼저 쓰고, 모두 재생 중이면 가장 오래된 것을 처음부터 다시 튼다.
-    let v = pad.videos.find((x) => !x.classList.contains("on"));
-    if (!v && pad.videos.length < VIDEOS_PER_PAD && videoCount < MAX_VIDEOS) v = addVideo(pad);
-    if (!v) v = pad.videos.reduce((a, b) => (a.startedAt <= b.startedAt ? a : b));
+    const v = pickVideo(pad);
+    assign(v, pad);
     v.startedAt = performance.now();
     v.style.zIndex = String(++zTop);
-    if (pad.def.flip) v.style.transform = randomFlip(pad);
-    v.currentTime = 0;
+    v.style.transform = pad.def.flip ? randomFlip(pad) : "none";
+    try {
+      v.currentTime = 0;
+    } catch (e) {}
     v.classList.add("on");
     // 브라우저가 영상을 끝내 못 틀면 'ended'가 오지 않으므로, 클립 길이가 지나면 정리한다
     const startedAt = v.startedAt;
     setTimeout(() => {
-      if (v.startedAt === startedAt && v.classList.contains("on") && (v.paused || v.readyState < 2)) v.dispatchEvent(new Event("ended"));
+      if (v.startedAt === startedAt && v.classList.contains("on") && (v.paused || v.readyState < 2)) v.classList.remove("on");
     }, ((v.duration || 4) + 1) * 1000);
-    v.play().catch((err) => {
-      v.classList.remove("on");
-      console.warn("영상 재생 실패:", pad.def.key, pad.def.clip, err);
-    });
+    const p = v.play();
+    if (p)
+      p.catch((err) => {
+        if (v.startedAt !== startedAt) return; // 다른 키가 이 영상을 가져가면서 끊긴 경우
+        v.classList.remove("on");
+        console.warn("영상 재생 실패:", pad.def.key, pad.def.clip, err);
+      });
+  }
+
+  // 데스크톱은 키마다 하나씩 미리 열어 둔다 (한도까지). 휴대폰은 누를 때 연다.
+  function warmUp() {
+    if (MOBILE) return;
+    for (const pad of pads.values()) {
+      if (videos.length >= MAX_VIDEOS) break;
+      assign(createVideo(), pad);
+    }
+  }
+
+  // ---- 소리 ----
+
+  function playSound(pad) {
+    const src = audio.createBufferSource();
+    src.buffer = pad.buffer;
+    src.connect(master);
+    src.start();
+    pad.voices.push(src);
+    stats.voices++;
+    src.onended = () => {
+      const i = pad.voices.indexOf(src);
+      if (i >= 0) pad.voices.splice(i, 1);
+      stats.voices--;
+    };
+    if (pad.voices.length > VOICES_PER_PAD) pad.voices.shift().stop();
+  }
+
+  // iOS·안드로이드는 사용자가 처음 화면을 만질 때 소리를 켜 줘야 한다 (무음 한 번 재생)
+  let unlocked = false;
+  function unlockAudio() {
+    if (audio.state !== "running") audio.resume();
+    if (unlocked) return;
+    unlocked = true;
+    const s = audio.createBufferSource();
+    s.buffer = audio.createBuffer(1, 1, 22050);
+    s.connect(audio.destination);
+    s.start(0);
   }
 
   function trigger(key) {
     const pad = pads.get(key);
-    if (!pad) return;
+    if (!pad) return false;
     if (audio.state !== "running") audio.resume();
+    stats.triggers++;
     playSound(pad);
     playVideo(pad);
+    return true;
   }
+
+  // ---- 입력 ----
 
   window.addEventListener("keydown", (e) => {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return; // 꾹 누르고 있을 때의 자동 반복은 무시
-    // e.code 기준이라 한글 입력 상태(ㅁㄴㅇㄹ)에서도 a s d f 자리로 동작한다
+    // e.code 기준이라 한글 입력 상태(ㅁㄴㅇㄹ)에서도 키 자리로 동작한다
     const key = e.code.startsWith("Key") ? e.code.slice(3).toLowerCase() : "";
     if (pads.has(key)) {
       e.preventDefault();
@@ -132,8 +187,49 @@
     }
   });
 
-  Promise.all(window.PADS.map(loadPad)).catch((err) => {
-    const hint = location.protocol === "file:" ? " (소리를 바꿨다면 python3 make_sounds_js.py 를 한 번 실행해 주세요)" : "";
-    showNotice(`불러오지 못한 파일이 있어요: ${err.message}${hint}`);
-  });
+  // 화면 전체를 보이지 않는 칸으로 나눈다: 가로 화면 9x3, 세로 화면 3x9
+  function cellAt(x, y) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const cols = w >= h ? 9 : 3;
+    const rows = 27 / cols;
+    const c = Math.min(cols - 1, Math.max(0, Math.floor((x / w) * cols)));
+    const r = Math.min(rows - 1, Math.max(0, Math.floor((y / h) * rows)));
+    return GRID[r * cols + c];
+  }
+
+  function ripple(x, y) {
+    const d = document.createElement("div");
+    d.className = "ripple";
+    d.style.left = x + "px";
+    d.style.top = y + "px";
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 600);
+  }
+
+  // 손가락마다 pointerdown이 따로 오므로 여러 손가락을 동시에 눌러도 각각 울린다
+  window.addEventListener("pointerdown", (e) => {
+    if (e.target.closest && e.target.closest("#notice")) return;
+    e.preventDefault();
+    unlockAudio();
+    if (e.pointerType === "mouse") return; // 마우스 클릭은 소리만 켜고 연주는 키보드로
+    const cell = cellAt(e.clientX, e.clientY);
+    if (cell === "switch") {
+      console.log("악기 묶음 바꾸기 (아직 기능 없음)");
+      return;
+    }
+    if (trigger(cell)) ripple(e.clientX, e.clientY);
+  }, { passive: false });
+
+  // 길게 누르기 메뉴·두 번 눌러 확대 막기
+  window.addEventListener("contextmenu", (e) => e.preventDefault());
+  document.addEventListener("dblclick", (e) => e.preventDefault());
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
+
+  Promise.all(window.PADS.map(loadPad))
+    .then(warmUp)
+    .catch((err) => {
+      const hint = location.protocol === "file:" ? " (소리를 바꿨다면 python3 make_sounds_js.py 를 한 번 실행해 주세요)" : "";
+      showNotice(`불러오지 못한 파일이 있어요: ${err.message}${hint}`);
+    });
 })();

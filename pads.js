@@ -21,4 +21,12 @@ window.PADS = [
   { key: "z", name: "추임새 얼쑤", sound: "sounds/chuimsae_eolssu.wav", clip: "clips/v2/ink10_dry_loop.mp4", flip: true },
   { key: "x", name: "추임새 얼씨구", sound: "sounds/chuimsae_eolssigu.wav", clip: "clips/v2/ink11_zigzag.mp4", flip: true },
   { key: "c", name: "추임새 좋다", sound: "sounds/chuimsae_jota.wav", clip: "clips/v2/ink14_swirl.mp4", flip: true },
+  { key: "q", name: "꽹과리 객 (강)", sound: "sounds/kkwaenggwari_gaek_strong.wav", clip: "clips/v2/ink19_c_enso.mp4", flip: true },
+  { key: "w", name: "꽹과리 갯 (강)", sound: "sounds/kkwaenggwari_gaet_strong.wav", clip: "clips/v2/ink04_enso.mp4", flip: true },
+  { key: "e", name: "북 노고 (중)", sound: "sounds/buk_nogo_mid.wav", clip: "clips/v3/ink22_peony_bloom.mp4", flip: true },
+  { key: "r", name: "북 절고 (중)", sound: "sounds/buk_jeolgo_mid.wav", clip: "clips/v3/ink21_mountain_mist.mp4", flip: true },
+  { key: "v", name: "북 노고 (강)", sound: "sounds/buk_nogo_strong.wav", clip: "clips/v3/ink23_ink_circles.mp4", flip: true },
+  { key: "b", name: "북 절고 (강)", sound: "sounds/buk_jeolgo_strong.wav", clip: "clips/v2/ink17_landscape.mp4", flip: true },
+  { key: "n", name: "추임새 쑤", sound: "sounds/chuimsae_ssu.wav", clip: "clips/v2/ink16_stains.mp4", flip: true },
+  { key: "m", name: "추임새 어이", sound: "sounds/chuimsae_eoi.wav", clip: "clips/v2/ink18_mist.mp4", flip: true },
 ];
