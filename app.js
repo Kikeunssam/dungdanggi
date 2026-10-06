@@ -3,6 +3,7 @@
   // 키마다 영상은 1개만 미리 준비하고, 연타로 겹칠 때만 잠깐 더 만들었다가 끝나면 치운다.
   const VIDEOS_PER_PAD = 4; // 한 키에서 동시에 겹쳐 보일 수 있는 최대 개수
   const VOICES_PER_PAD = 8; // 같은 소리가 동시에 울릴 수 있는 최대 개수
+  const MAX_VIDEOS = 22; // 화면 전체에 둘 수 있는 영상 수 (Chrome은 1080p 영상을 약 25개 넘게 동시에 열면 일부를 못 연다)
 
   const stage = document.getElementById("stage");
   const notice = document.getElementById("notice");
@@ -12,6 +13,7 @@
 
   const pads = new Map(); // key -> { buffer, videos, voices }
   let zTop = 0;
+  let videoCount = 0;
 
   function showNotice(text) {
     notice.textContent = text;
@@ -43,18 +45,27 @@
     v.playsInline = true;
     v.preload = "auto";
     v.startedAt = 0;
-    v.addEventListener("ended", () => {
+    // 첫 번째(미리 준비한) 영상만 남기고, 연타 때 더 만든 영상은 치워서 디코더를 돌려준다
+    const release = () => {
       v.classList.remove("on");
-      // 첫 번째(미리 준비한) 영상만 남기고, 연타 때 더 만든 영상은 치워서 디코더를 돌려준다
-      if (pad.videos[0] !== v) {
+      if (pad.videos[0] !== v && pad.videos.includes(v)) {
         pad.videos.splice(pad.videos.indexOf(v), 1);
+        videoCount--;
         v.removeAttribute("src");
         v.load();
         v.remove();
       }
+    };
+    v.addEventListener("ended", release);
+    v.addEventListener("error", () => {
+      if (!v.getAttribute("src")) return; // 치우면서 src를 지운 경우
+      console.warn("영상을 열 수 없음:", pad.def.key, pad.def.clip, v.error);
+      // 열지 못한 영상이 화면에 '재생 중'으로 남아 키가 먹통이 되지 않도록 정리한다
+      release();
+      if (pad.videos[0] === v) setTimeout(() => v.load(), 500); // 미리 준비한 영상은 다시 연다
     });
-    v.addEventListener("error", () => console.warn("영상을 열 수 없음:", pad.def.key, pad.def.clip, v.error));
     stage.appendChild(v);
+    videoCount++;
     v.load();
     pad.videos.push(v);
     return v;
@@ -85,13 +96,18 @@
   function playVideo(pad) {
     // 쉬고 있는 영상을 먼저 쓰고, 모두 재생 중이면 가장 오래된 것을 처음부터 다시 튼다.
     let v = pad.videos.find((x) => !x.classList.contains("on"));
-    if (!v && pad.videos.length < VIDEOS_PER_PAD) v = addVideo(pad);
+    if (!v && pad.videos.length < VIDEOS_PER_PAD && videoCount < MAX_VIDEOS) v = addVideo(pad);
     if (!v) v = pad.videos.reduce((a, b) => (a.startedAt <= b.startedAt ? a : b));
     v.startedAt = performance.now();
     v.style.zIndex = String(++zTop);
     if (pad.def.flip) v.style.transform = randomFlip(pad);
     v.currentTime = 0;
     v.classList.add("on");
+    // 브라우저가 영상을 끝내 못 틀면 'ended'가 오지 않으므로, 클립 길이가 지나면 정리한다
+    const startedAt = v.startedAt;
+    setTimeout(() => {
+      if (v.startedAt === startedAt && v.classList.contains("on") && (v.paused || v.readyState < 2)) v.dispatchEvent(new Event("ended"));
+    }, ((v.duration || 4) + 1) * 1000);
     v.play().catch((err) => {
       v.classList.remove("on");
       console.warn("영상 재생 실패:", pad.def.key, pad.def.clip, err);
