@@ -155,6 +155,7 @@
 
   function playSound(pad) {
     if (!pad.buffer) return;
+    stats.sounds = (stats.sounds || 0) + 1;
     const src = audio.createBufferSource();
     src.buffer = pad.buffer;
     src.connect(master);
@@ -269,7 +270,10 @@
   document.addEventListener("gesturestart", (e) => e.preventDefault());
 
   Promise.all(banks.flatMap((b) => b.defs.map((def) => loadPad(b, def))))
-    .then(warmUp)
+    .then(() => {
+      stats.loadedMs = Math.round(performance.now()); // 모든 소리를 다 불러온 시각 (테스트용)
+      warmUp();
+    })
     .catch((err) => {
       const hint = location.protocol === "file:" ? " (소리를 바꿨다면 python3 make_sounds_js.py 를 한 번 실행해 주세요)" : "";
       showNotice(`불러오지 못한 파일이 있어요: ${err.message}${hint}`);

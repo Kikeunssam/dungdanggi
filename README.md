@@ -33,7 +33,7 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 | 뱅크 | 배경 | 영상 겹치기 | 패드 |
 |---|---|---|---|
 | 1 수묵 | 한지 (`assets/hanji.jpg`) | darken (먹만 남음) | 아래 26개 키, 소리+영상 |
-| 2 단청 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | 26개 키 모두 단청 문양 영상 (`clips/dancheong/` dc01~dc26, 아직 소리 없음) — 아래 표 |
+| 2 단청 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | 26개 키 모두 관악기·대금 소리 + 단청 문양 영상 (`clips/dancheong/` dc01~dc26) — 아래 표 |
 
 `pads.js`의 `window.BANKS`에서 뱅크별로 패드를 적고,
 `sound`를 빼면 영상만 나오는 패드가 된다.
@@ -77,34 +77,36 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 
 ## 키 배치 (뱅크 2 단청)
 
-| 키 | 영상 |
-|---|---|
-| a | dc01_lotus_bloom (연꽃) |
-| s | dc02_wave_sweep (물결) |
-| d | dc03_tile_medallions (기와 문양) |
-| f | dc04_meoricho_band (머리초 띠) |
-| q | dc05_hex_lattice (육각 살창) |
-| w | dc06_cloud_scroll (구름 무늬) |
-| e | dc07_aja_lattice (아자 살창) |
-| r | dc08_jewel_spiral (보주 소용돌이) |
-| t | dc09_rainbow_ripple (오색 물결무늬) |
-| y | dc10_twin_lotus (쌍 연꽃) |
-| u | dc11_star_rosette (별꽃) |
-| i | dc12_soran_grid (소란 격자) |
-| o | dc13_pillar_bands (기둥 띠) |
-| p | dc14_maehwa_scatter (매화 흩날림) |
-| g | dc15_wave_rise (솟는 물결) |
-| h | dc16_arch_garland (아치 꽃줄) |
-| j | dc17_clock_petals (꽃잎 바퀴) |
-| k | dc18_octagon_ripple (팔각 물결) |
-| l | dc19_lotus_ring (연꽃 고리) |
-| z | dc20_diamond_chain (마름모 사슬) |
-| x | dc21_fret_frame (뇌문 틀) |
-| c | dc22_falling_petals (떨어지는 꽃잎) |
-| v | dc23_sun_rays (햇살) |
-| b | dc24_cloud_drift (흐르는 구름) |
-| n | dc25_hexa_cross (육각 십자) |
-| m | dc26_corner_fans (모서리 부채) |
+관악기 12개(단소·소금·피리·나발·나각·산조대금)와 대금 니나 한 음 14개. 대금 니나는 아랫줄(z x n m) → 가운데 줄(d f h j k) → 윗줄(q e u i o)로 갈수록 음이 높아진다.
+
+| 키 | 소리 | 영상 |
+|---|---|---|
+| q | 대금 니나 10 (`daegeum_nina_10`) | dc05_hex_lattice |
+| w | 소금 노니로 (`sogeum_noniro`) | dc06_cloud_scroll |
+| e | 대금 니나 11 (`daegeum_nina_11`) | dc07_aja_lattice |
+| r | 나각 (`nagak`) | dc08_jewel_spiral |
+| t | 소금 깊은농음 (`sogeum_gipeun_nongeum`) | dc09_rainbow_ripple |
+| y | 산조대금 (`sanjo_daegeum`) | dc10_twin_lotus |
+| u | 대금 니나 12 (`daegeum_nina_12`) | dc11_star_rosette |
+| i | 대금 니나 13 (`daegeum_nina_13`) | dc12_soran_grid |
+| o | 대금 니나 14 (`daegeum_nina_14`) | dc13_pillar_bands |
+| p | 소금 노르니르 (`sogeum_noreunireu`) | dc14_maehwa_scatter |
+| a | 단소 8 (`danso_8`) | dc01_lotus_bloom |
+| s | 단소 6 (`danso_6`) | dc02_wave_sweep |
+| d | 대금 니나 5 (`daegeum_nina_05`) | dc03_tile_medallions |
+| f | 대금 니나 6 (`daegeum_nina_06`) | dc04_meoricho_band |
+| g | 피리 (`piri_14`) | dc15_wave_rise |
+| h | 대금 니나 7 (`daegeum_nina_07`) | dc16_arch_garland |
+| j | 대금 니나 8 (`daegeum_nina_08`) | dc17_clock_petals |
+| k | 대금 니나 9 (`daegeum_nina_09`) | dc18_octagon_ripple |
+| l | 단소 9 (`danso_9`) | dc19_lotus_ring |
+| z | 대금 니나 1 (`daegeum_nina_01`) | dc20_diamond_chain |
+| x | 대금 니나 2 (`daegeum_nina_02`) | dc21_fret_frame |
+| c | 소금 나니루 (`sogeum_naniru`) | dc22_falling_petals |
+| v | 나발 (`nabal`) | dc23_sun_rays |
+| b | 단소 7 (`danso_7`) | dc24_cloud_drift |
+| n | 대금 니나 3 (`daegeum_nina_03`) | dc25_hexa_cross |
+| m | 대금 니나 4 (`daegeum_nina_04`) | dc26_corner_fans |
 
 ## 소리·영상 바꾸기
 
