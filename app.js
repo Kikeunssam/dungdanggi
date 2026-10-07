@@ -36,9 +36,12 @@
   let zTop = 0;
   const stats = (window.dungdanggiStats = { triggers: 0, voices: 0, bank: 0 }); // 테스트용 숫자
 
-  function showNotice(text) {
+  let noticeTimer = 0;
+  function showNotice(text, sec = 0) {
     notice.textContent = text;
     notice.hidden = false;
+    clearTimeout(noticeTimer);
+    if (sec) noticeTimer = setTimeout(() => (notice.hidden = true), sec * 1000);
   }
 
   // 웹 서버(http)로 열면 음원 파일을 바로 받는다.
@@ -253,6 +256,165 @@
     labelTimer = setTimeout(() => label.classList.remove("on"), 600);
   }
 
+  // ---- 녹화 (PC: Shift+R) ----
+  // 화면에 보이는 것(배경 + 재생 중인 영상, 겹치기 방식·반전 그대로)을 캔버스 하나에 매 프레임 다시 그리고,
+  // 앱 소리와 함께 MediaRecorder로 MP4 파일을 만든다. 최대 23초, 멈추면 바로 내려받는다.
+
+  const REC_MAX_SEC = 23;
+  const REC_TYPES = [
+    "video/mp4;codecs=avc1.42E01F,mp4a.40.2",
+    "video/mp4;codecs=avc1,mp4a.40.2",
+    "video/mp4",
+    "video/webm;codecs=vp9,opus",
+    "video/webm",
+  ];
+  const BLENDS = { multiply: "multiply", darken: "darken", lighten: "lighten", screen: "screen" };
+  const recBadge = document.createElement("div");
+  recBadge.id = "rec";
+  recBadge.hidden = true;
+  document.body.appendChild(recBadge);
+  const bgImages = new Map();
+  let rec = null;
+
+  function bgImage(b) {
+    if (b.background.startsWith("#")) return null;
+    if (!bgImages.has(b)) {
+      const img = new Image();
+      img.src = b.background;
+      bgImages.set(b, img);
+    }
+    return bgImages.get(b);
+  }
+
+  // CSS object-fit: cover / background-size: cover 와 같은 자리 계산
+  function cover(sw, sh, dw, dh) {
+    const s = Math.max(dw / sw, dh / sh);
+    return [(dw - sw * s) / 2, (dh - sh * s) / 2, sw * s, sh * s];
+  }
+
+  function flipOf(transform) {
+    if (!transform || transform === "none") return [1, 1];
+    if (transform.startsWith("scaleX")) return [-1, 1];
+    if (transform.startsWith("scaleY")) return [1, -1];
+    if (transform.startsWith("scale(")) return [-1, -1];
+    return [1, 1];
+  }
+
+  function drawStage(ctx, W, H) {
+    ctx.globalCompositeOperation = "source-over";
+    const img = bgImage(bank);
+    if (img && img.naturalWidth) ctx.drawImage(img, ...cover(img.naturalWidth, img.naturalHeight, W, H));
+    else {
+      ctx.fillStyle = bank.background.startsWith("#") ? bank.background : "#e8e3da";
+      ctx.fillRect(0, 0, W, H);
+    }
+    const on = videos
+      .filter((v) => v.classList.contains("on") && v.readyState >= 2 && v.videoWidth)
+      .sort((a, b) => Number(a.style.zIndex) - Number(b.style.zIndex));
+    for (const v of on) {
+      ctx.globalCompositeOperation = BLENDS[v.style.mixBlendMode] || "source-over";
+      const [fx, fy] = flipOf(v.style.transform);
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.scale(fx, fy);
+      ctx.translate(-W / 2, -H / 2);
+      ctx.drawImage(v, ...cover(v.videoWidth, v.videoHeight, W, H));
+      ctx.restore();
+    }
+  }
+
+  function stamp(d) {
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  }
+
+  function download(blob, name) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.hidden = true;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  }
+
+  function toggleRecording() {
+    if (rec) stopRecording();
+    else startRecording();
+  }
+
+  function startRecording() {
+    // 파일로 바로 연 화면은 브라우저 보안 때문에 영상을 캔버스로 옮길 수 없어 그림이 녹화되지 않는다
+    if (location.protocol === "file:") {
+      showNotice("녹화는 웹 서버로 열었을 때만 돼요: 앱 폴더에서 python3 -m http.server 8000 실행 후 http://localhost:8000 을 열어 주세요", 8);
+      return;
+    }
+    const type = window.MediaRecorder && REC_TYPES.find((t) => MediaRecorder.isTypeSupported(t));
+    if (!type) {
+      showNotice("이 브라우저는 화면 녹화를 지원하지 않아요 (Chrome을 써 주세요)", 6);
+      return;
+    }
+    if (audio.state !== "running") audio.resume();
+    const W = 1920;
+    const H = Math.round((W * window.innerHeight) / window.innerWidth / 2) * 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+    let stream;
+    try {
+      stream = canvas.captureStream(30); // 그림을 그리기 전에 스트림을 연다
+    } catch (err) {
+      showNotice(`녹화를 시작할 수 없어요: ${err.message}`, 6);
+      return;
+    }
+    const dest = audio.createMediaStreamDestination();
+    master.connect(dest); // 듣는 소리는 그대로, 같은 소리를 녹화에도 보낸다
+    for (const track of dest.stream.getAudioTracks()) stream.addTrack(track);
+    const recorder = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 8000000, audioBitsPerSecond: 192000 });
+    const chunks = [];
+    const ext = type.startsWith("video/mp4") ? "mp4" : "webm";
+    const name = `dungdanggi_${bank.name}_${stamp(new Date())}.${ext}`;
+    const state = { recorder, startedAt: performance.now(), timer: 0 };
+    recorder.ondataavailable = (e) => e.data && e.data.size && chunks.push(e.data);
+    recorder.onstop = () => {
+      master.disconnect(dest);
+      for (const track of stream.getTracks()) track.stop();
+      download(new Blob(chunks, { type: type.split(";")[0] }), name);
+      stats.lastRecording = { name, type, bytes: chunks.reduce((n, c) => n + c.size, 0) };
+    };
+    const draw = () => {
+      if (rec !== state) return;
+      drawStage(ctx, W, H);
+      requestAnimationFrame(draw);
+    };
+    state.timer = setInterval(() => {
+      const sec = (performance.now() - state.startedAt) / 1000;
+      recBadge.textContent = `${Math.min(REC_MAX_SEC, Math.floor(sec))}초`;
+      if (sec >= REC_MAX_SEC) stopRecording(); // 23초가 되면 저절로 멈추고 내려받는다
+    }, 100);
+    rec = state;
+    recorder.start(1000);
+    draw();
+    recBadge.textContent = "0초";
+    recBadge.hidden = false;
+    stats.recording = true;
+    if (ext !== "mp4") showNotice("이 브라우저는 MP4 녹화를 못 해서 WebM으로 저장해요", 6);
+  }
+
+  function stopRecording() {
+    if (!rec) return;
+    const state = rec;
+    rec = null;
+    clearInterval(state.timer);
+    recBadge.hidden = true;
+    stats.recording = false;
+    if (state.recorder.state !== "inactive") state.recorder.stop();
+  }
+
   // ---- 입력 ----
 
   window.addEventListener("keydown", (e) => {
@@ -260,6 +422,14 @@
     if (e.code === "Space") {
       e.preventDefault();
       switchBank();
+      return;
+    }
+    // Shift를 누른 동안은 패드를 치지 않는다. Shift+R = 녹화 시작/멈춤
+    if (e.shiftKey) {
+      if (e.code === "KeyR") {
+        e.preventDefault();
+        toggleRecording();
+      }
       return;
     }
     // e.code 기준이라 한글 입력 상태(ㅁㄴㅇㄹ)에서도 키 자리로 동작한다

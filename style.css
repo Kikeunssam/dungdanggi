@@ -100,3 +100,34 @@ html, body {
   opacity: 1;
   transition: opacity 0.1s ease;
 }
+
+/* 녹화 중 표시 (화면에만 보이고 녹화 파일에는 들어가지 않는다) */
+#rec {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: calc(16px + env(safe-area-inset-left, 0px));
+  z-index: 100002;
+  font: 600 13px/1 system-ui, sans-serif;
+  color: #c62828;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 6px 10px 6px 24px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+#rec::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin-top: -4.5px;
+  border-radius: 50%;
+  background: #e53935;
+  animation: rec-blink 1s steps(2, start) infinite;
+}
+
+@keyframes rec-blink {
+  to { visibility: hidden; }
+}
