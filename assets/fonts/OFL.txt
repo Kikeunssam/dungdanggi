@@ -1,0 +1,5 @@
+Nanum Brush Script and Nanum Myeongjo
+Copyright (c) 2010, NAVER Corporation (https://www.navercorp.com/)
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+The full license text is available at https://openfontlicense.org/open-font-license-official-text/
+Subsets were taken from the @fontsource/nanum-brush-script and @fontsource/nanum-myeongjo npm packages.
