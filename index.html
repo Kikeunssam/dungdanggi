@@ -7,37 +7,34 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="icon" href="data:,">
   <title>둥당기</title>
-  <link rel="stylesheet" href="assets/fonts/fonts.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="stage"></div>
   <div id="notice" hidden></div>
   <div id="start">
-    <h1 class="start-title">둥당기</h1>
-    <p class="start-sub">우리 소리로 그리는 한 폭의 그림</p>
-    <div class="start-buttons">
-      <button type="button" id="start-go" class="start-btn">시작하기</button>
-      <button type="button" id="start-help" class="start-btn">사용 방법</button>
-    </div>
-    <p class="start-hint">아무 키나 누르거나 화면을 터치하세요</p>
-    <footer class="start-footer">
-      <span>© 2026 키큰쌤. All rights reserved.</span>
-      <span class="sep">|</span>
-      <span>Inspired by Jono Brandel’s Patatap</span>
-      <span class="sep">|</span>
-      <span>모든 음원 샘플은 국립국악원 ‘국악 디지털 음원’ 자료를 활용하였습니다.</span>
-    </footer>
-    <div id="help" hidden>
-      <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="band top"></div>
+    <div class="band"></div>
+    <main class="start-main">
+      <div class="logo A"><img src="assets/logo_A.svg" alt="둥당기"></div>
+      <div class="sub">우리 소리로 그리는 한 폭의 그림</div>
+      <div class="btns">
+        <button type="button" id="start-go" class="btn primary"><span>시작하기</span></button>
+        <button type="button" id="start-help" class="btn"><span>사용 방법</span></button>
+      </div>
+      <div class="hint">아무 키나 누르거나 화면을 터치하세요</div>
+    </main>
+    <footer class="start-footer"><span>© 2026 키큰쌤. All rights reserved.</span><i>|</i><span>Inspired by Jono Brandel’s Patatap</span><i>|</i><span>모든 음원 샘플은 국립국악원 ‘국악 디지털 음원’ 자료를 활용하였습니다.</span></footer>
+    <div id="help" class="veil" hidden>
+      <div class="card" role="dialog" aria-modal="true" aria-labelledby="help-title">
         <h2 id="help-title">사용 방법</h2>
-        <ul>
-          <li>알파벳 키를 누르면 그 키의 소리와 그림이 나와요. 여러 키를 함께 누르면 소리와 그림이 겹쳐요.</li>
-          <li>스페이스바로 뱅크를 바꿔요: 1 수묵 → 2 단청 → 3 자개 → 4 섞음. 섞음은 들어올 때마다 새로 섞여요.</li>
-          <li>휴대폰·태블릿은 화면을 터치해 연주해요. 오른쪽 아래 칸을 누르면 뱅크가 바뀌어요.</li>
-          <li>PC에서 Shift+R을 누르면 화면과 소리를 녹화해요(최대 23초). 한 번 더 누르면 MP4로 저장돼요. 녹화는 http://localhost:8000 으로 열었을 때만 돼요.</li>
-        </ul>
-        <button type="button" id="help-close" class="start-btn">닫기</button>
+        <dl>
+          <dt><kbd>A</kbd> ~ <kbd>Z</kbd></dt><dd>자판마다 소리 하나, 그림 하나가 나와요. 여러 키를 함께 누르면 소리와 그림이 겹쳐요.</dd>
+          <dt><kbd>Space</kbd></dt><dd>뱅크 바꾸기: 1 수묵 → 2 단청 → 3 자개 → 4 섞음. 섞음은 들어올 때마다 새로 섞여요.</dd>
+          <dt>휴대폰</dt><dd>화면을 터치해 연주하고, 오른쪽 아래 칸을 누르면 뱅크가 바뀌어요.</dd>
+          <dt><kbd>Shift</kbd> + <kbd>R</kbd></dt><dd>화면과 소리를 녹화해요(최대 23초). 한 번 더 누르면 MP4로 저장돼요. 녹화는 http://localhost:8000 으로 열었을 때만 돼요.</dd>
+        </dl>
+        <div class="close"><button type="button" id="help-close" class="btn"><span>닫기</span></button></div>
       </div>
     </div>
   </div>

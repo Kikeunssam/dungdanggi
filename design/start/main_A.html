@@ -1,0 +1,41 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--ink:#1f2124;--ink2:#5b5a57;--red:#b8352a;--paper:#f6f0e4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:var(--ink);
+  background:#f4eee2 url(../../assets/hanji_dak.jpg) center/cover;overflow:hidden}
+/* 아래쪽 넝쿨 문양지 띠: 위로 갈수록 한지로 스며든다 */
+.band{position:fixed;left:0;right:0;bottom:0;height:24vh;background:url(../../assets/dangcho_tile.jpg) repeat;background-size:min(30vw,300px);
+  opacity:.55;-webkit-mask-image:linear-gradient(to top,#000 0%,#000 30%,transparent 100%);mask-image:linear-gradient(to top,#000 0%,#000 30%,transparent 100%)}
+.band.top{top:0;bottom:auto;height:14vh;transform:scaleY(-1);opacity:.35}
+main{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,3.2vh,34px);padding-bottom:6vh}
+.logo img{display:block}
+.logo.A img,.logo.C img{width:min(46vw,560px)}
+.logo.B img{height:min(46vh,420px)}
+.sub{font-weight:300;font-size:clamp(14px,1.6vw,21px);letter-spacing:.28em;color:var(--ink2);margin-right:-.28em}
+.btns{display:flex;gap:clamp(12px,1.6vw,22px);margin-top:clamp(4px,1vh,12px)}
+/* 버튼: 네 귀를 亞자처럼 들인 판. 바깥 먹선 + 안쪽 실선 */
+.btn{--c:6px;position:relative;font:inherit;font-size:clamp(14px,1.25vw,17px);letter-spacing:.32em;padding:.95em 2.1em .95em 2.42em;border:0;cursor:pointer;
+  color:var(--ink);background:transparent}
+.btn::before,.btn::after{content:"";position:absolute;inset:0;pointer-events:none;
+  clip-path:polygon(var(--c) 0,calc(100% - var(--c)) 0,calc(100% - var(--c)) var(--c),100% var(--c),100% calc(100% - var(--c)),calc(100% - var(--c)) calc(100% - var(--c)),calc(100% - var(--c)) 100%,var(--c) 100%,var(--c) calc(100% - var(--c)),0 calc(100% - var(--c)),0 var(--c),var(--c) var(--c))}
+.btn::before{background:var(--ink)}
+.btn::after{inset:1.5px;--c:5px;background:rgba(246,240,228,.92)}
+.btn span{position:relative;z-index:1}
+.btn.primary::after{background:var(--ink);inset:0}
+.btn.primary{color:var(--paper)}
+.btn.primary span::before{content:"";display:inline-block;width:.42em;height:.42em;background:var(--red);margin-right:.7em;vertical-align:.12em}
+.hint{font-size:12px;letter-spacing:.2em;color:#8b8780;font-weight:300}
+footer{position:fixed;left:0;right:0;bottom:14px;text-align:center;font-size:11px;line-height:1.7;color:#6e6a72;font-weight:300;letter-spacing:.02em;padding:0 16px}
+footer i{font-style:normal;margin:0 .8em;color:#a7a2ab}
+</style>
+<div class="band top"></div><div class="band"></div>
+<main>
+  <div class="logo A"><img src="../../assets/logo_A.svg" alt="둥당기"></div>
+  <div class="sub">우리 소리로 그리는 한 폭의 그림</div>
+  <div class="btns"><button class="btn primary"><span>시작하기</span></button><button class="btn"><span>사용 방법</span></button></div>
+  <div class="hint">아무 키나 누르거나 화면을 터치하세요</div>
+</main>
+<footer>© 2026 키큰쌤. All rights reserved.<i>|</i>Inspired by Jono Brandel’s Patatap<i>|</i>모든 음원 샘플은 국립국악원 ‘국악 디지털 음원’ 자료를 활용하였습니다.</footer>
+</html>

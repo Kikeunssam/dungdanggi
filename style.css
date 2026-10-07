@@ -132,18 +132,19 @@ html, body {
   to { visibility: hidden; }
 }
 
-/* 시작 화면: 뱅크 1과 같은 바랜 한지 위에 제목. 아무 키나 누르거나 화면을 만지면 사라진다 */
+/* 시작 화면 (design/start/main_A.html, help_A.html 기준)
+   닥종이 한지 바탕, 위·아래 당초문 띠, 로고 그림, 亞자 귀 버튼. 아무 키나 누르거나 화면을 만지면 사라진다 */
 #start {
+  --ink: #1f2124;
+  --ink2: #5b5a57;
+  --red: #b8352a;
+  --paper: #f6f0e4;
   position: fixed;
   inset: 0;
   z-index: 100003;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
-  background: #e9dcc3 url("assets/hanji_aged.jpg") center / cover no-repeat;
-  text-align: center;
+  font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  color: var(--ink);
+  background: #f4eee2 url("assets/hanji_dak.jpg") center / cover;
   transition: opacity 0.7s ease;
   cursor: default;
 }
@@ -153,149 +154,310 @@ html, body {
   pointer-events: none;
 }
 
-.start-title {
-  margin: 0;
-  font: normal clamp(72px, 24vmin, 260px) / 1 "Dungdanggi Brush", "Nanum Brush Script", serif;
-  color: #23262b;
-  letter-spacing: 0.02em;
+#start *,
+#start *::before,
+#start *::after {
+  box-sizing: border-box;
 }
 
-.start-sub {
-  margin: 0.6em 0 0;
-  font: normal clamp(15px, 2.9vmin, 28px) / 1.4 "Dungdanggi Myeongjo", "Nanum Myeongjo", "AppleMyungjo", serif;
-  color: rgba(35, 38, 43, 0.62);
-  letter-spacing: 0.22em;
-}
-
-.start-hint {
+/* 아래쪽 넝쿨 문양지 띠: 위로 갈수록 한지로 스며든다 */
+#start .band {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(9vh + 2.6em + env(safe-area-inset-bottom, 0px));
-  margin: 0;
-  font: normal clamp(12px, 1.9vmin, 17px) / 1.4 "Dungdanggi Myeongjo", "Nanum Myeongjo", "AppleMyungjo", serif;
-  color: rgba(35, 38, 43, 0.5);
-  letter-spacing: 0.15em;
-  animation: start-hint 3.2s ease-in-out infinite;
+  bottom: 0;
+  height: 24vh;
+  background: url("assets/dangcho_tile.jpg") repeat;
+  background-size: min(30vw, 300px);
+  opacity: 0.55;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 30%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, #000 30%, transparent 100%);
+  pointer-events: none;
 }
 
-@keyframes start-hint {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.9; }
+#start .band.top {
+  top: 0;
+  bottom: auto;
+  height: 14vh;
+  transform: scaleY(-1);
+  opacity: 0.35;
 }
 
-.start-buttons {
+.start-main {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3.2vh, 34px);
+  padding: env(safe-area-inset-top, 0px) 20px 6vh;
+  text-align: center;
+}
+
+#start .logo img {
+  display: block;
+  max-width: 100%;
+}
+
+#start .logo.A img,
+#start .logo.C img {
+  width: min(46vw, 560px);
+}
+
+#start .logo.B img {
+  height: min(46vh, 420px);
+}
+
+#start .sub {
+  font-weight: 300;
+  font-size: clamp(14px, 1.6vw, 21px);
+  letter-spacing: 0.28em;
+  color: var(--ink2);
+  margin-right: -0.28em; /* 글자 사이 띄움 때문에 오른쪽으로 밀려 보이지 않게 */
+}
+
+#start .btns {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 14px 22px;
-  margin-top: clamp(26px, 5.5vmin, 54px);
+  gap: clamp(12px, 1.6vw, 22px);
+  margin-top: clamp(4px, 1vh, 12px);
 }
 
-.start-btn {
-  font: normal clamp(14px, 2.2vmin, 19px) / 1 "Dungdanggi Myeongjo", "Nanum Myeongjo", "AppleMyungjo", serif;
-  letter-spacing: 0.2em;
-  color: rgba(35, 38, 43, 0.82);
-  background: rgba(255, 250, 240, 0.18);
-  border: 1px solid rgba(35, 38, 43, 0.38);
-  border-radius: 2px;
-  padding: 0.85em 1.6em 0.85em 1.8em; /* letter-spacing 만큼 오른쪽이 넓어 보이지 않게 */
+/* 버튼: 네 귀를 亞자처럼 들인 판. 바깥 먹선 + 안쪽 한지 */
+#start .btn {
+  --c: 6px;
+  position: relative;
+  font: inherit;
+  font-size: clamp(14px, 1.25vw, 17px);
+  letter-spacing: 0.32em;
+  padding: 0.95em 2.1em 0.95em 2.42em;
+  border: 0;
   cursor: pointer;
-  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  color: var(--ink);
+  background: transparent;
+  outline: none;
 }
 
-.start-btn:hover,
-.start-btn:focus-visible {
-  background: rgba(35, 38, 43, 0.08);
-  border-color: rgba(35, 38, 43, 0.7);
-  color: #23262b;
-  outline: none;
+#start .btn::before,
+#start .btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, calc(100% - var(--c)) var(--c), 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, var(--c) calc(100% - var(--c)), 0 calc(100% - var(--c)), 0 var(--c), var(--c) var(--c));
+}
+
+#start .btn::before {
+  background: var(--ink);
+}
+
+#start .btn::after {
+  inset: 1.5px;
+  --c: 5px;
+  background: rgba(246, 240, 228, 0.92);
+  transition: background 0.2s ease;
+}
+
+#start .btn span {
+  position: relative;
+  z-index: 1;
+}
+
+#start .btn:hover::after,
+#start .btn:focus-visible::after {
+  background: rgba(232, 222, 202, 0.95);
+}
+
+#start .btn.primary {
+  color: var(--paper);
+}
+
+#start .btn.primary::after {
+  background: var(--ink);
+  inset: 0;
+}
+
+#start .btn.primary:hover::after,
+#start .btn.primary:focus-visible::after {
+  background: #34373c;
+}
+
+#start .btn.primary span::before {
+  content: "";
+  display: inline-block;
+  width: 0.42em;
+  height: 0.42em;
+  background: var(--red);
+  margin-right: 0.7em;
+  vertical-align: 0.12em;
+}
+
+#start .hint {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: #8b8780;
+  font-weight: 300;
 }
 
 .start-footer {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  padding: 0 20px;
-  font: normal clamp(10px, 1.45vmin, 12.5px) / 1.7 "Dungdanggi Myeongjo", "Nanum Myeongjo", "AppleMyungjo", serif;
-  color: rgba(35, 38, 43, 0.46);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #6e6a72;
+  font-weight: 300;
   letter-spacing: 0.02em;
+  padding: 0 16px;
 }
 
-.start-footer span {
-  display: inline-block; /* 좁은 화면에서는 덩어리째 줄바꿈 */
-}
-
-.start-footer .sep {
-  margin: 0 0.6em;
-  opacity: 0.6;
+.start-footer i {
+  font-style: normal;
+  margin: 0 0.8em;
+  color: #a7a2ab;
 }
 
 /* 사용 방법 */
-#help[hidden] {
-  display: none;
-}
 
-#help {
+#start .veil {
   position: absolute;
   inset: 0;
+  z-index: 10;
+  background: rgba(40, 38, 36, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: rgba(60, 50, 35, 0.18);
-  z-index: 1;
+  padding: 16px;
 }
 
-.help-card {
-  max-width: 34em;
-  max-height: calc(100% - 20px);
+#start .veil[hidden] {
+  display: none;
+}
+
+#start .card {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: 100%;
   overflow: auto;
-  padding: 1.8em 2em 1.6em;
-  text-align: left;
-  font: normal clamp(14px, 1.9vmin, 17px) / 1.75 "Dungdanggi Myeongjo", "Nanum Myeongjo", "AppleMyungjo", serif;
-  color: #2d2f33;
-  background: #f4ead6 url("assets/hanji_aged.jpg") center / cover;
   touch-action: pan-y; /* 작은 화면에서 내용을 위아래로 밀어 볼 수 있게 */
-  border: 1px solid rgba(35, 38, 43, 0.35);
-  box-shadow: 0 10px 40px rgba(40, 30, 15, 0.18);
+  padding: 44px 48px 36px;
+  background: #f6f0e4 url("assets/hanji_dak.jpg") center / cover;
+  box-shadow: 0 18px 50px rgba(30, 25, 20, 0.25);
+  text-align: left;
 }
 
-.help-card h2 {
-  margin: 0 0 0.8em;
-  font: inherit;
-  font-size: 1.25em;
-  letter-spacing: 0.25em;
-  text-align: center;
-  color: #23262b;
+#start .card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 46px;
+  background: url("assets/dangcho_tile.jpg") repeat;
+  background-size: 200px;
+  opacity: 0.5;
+  -webkit-mask-image: linear-gradient(#000, transparent);
+  mask-image: linear-gradient(#000, transparent);
+  pointer-events: none;
 }
 
-.help-card ul {
+#start .card::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(31, 33, 36, 0.35);
+  pointer-events: none;
+}
+
+#start .card h2 {
+  position: relative;
+  margin: 0 0 22px;
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: 0.3em;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+#start .card h2::before {
+  content: "";
+  width: 0.42em;
+  height: 0.42em;
+  background: var(--red);
+}
+
+#start .card dl {
+  position: relative;
   margin: 0;
-  padding-left: 1.1em;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 14px 22px;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 300;
 }
 
-.help-card li + li {
-  margin-top: 0.6em;
+#start .card dd {
+  margin: 0;
 }
 
-.help-card .start-btn {
-  display: block;
-  margin: 1.4em auto 0;
+#start .card dt {
+  font-weight: 400;
+  white-space: nowrap;
 }
 
-/* 좁은 화면: 바닥글 세 덩어리를 한 줄씩, 구분선은 감춘다 */
+#start .card kbd {
+  font: inherit;
+  font-size: 13px;
+  padding: 1px 8px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+#start .card .close {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 28px;
+}
+
+/* 좁은 화면 (휴대폰 세로) */
 @media (max-width: 640px) {
-  .start-footer span {
-    display: block;
+  #start .logo.A img,
+  #start .logo.C img {
+    width: min(78vw, 420px);
   }
 
-  .start-footer .sep {
+  #start .sub {
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    margin-right: -0.2em;
+  }
+
+  .start-footer span {
+    display: block; /* 세 덩어리를 한 줄씩 */
+  }
+
+  .start-footer i {
     display: none;
   }
 
-  .start-hint {
-    bottom: calc(9vh + 5em + env(safe-area-inset-bottom, 0px));
+  #start .card {
+    padding: 36px 24px 26px;
+  }
+
+  #start .card dl {
+    grid-template-columns: 1fr; /* 키 이름 아래에 설명 */
+    gap: 4px 0;
+  }
+
+  #start .card dd + dt {
+    margin-top: 12px;
   }
 }
