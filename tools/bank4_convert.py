@@ -22,6 +22,9 @@ def ink_white(f):
     hsv = cv2.cvtColor(f, cv2.COLOR_BGR2HSV)
     lum = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
     hsv[..., 2] = 255 - lum
+    # 아주 짙은 먹의 색상·채도는 압축 잡티라 믿지 않는다(흰 먹 한가운데 색 점이 생김). 옅은 담채만 빛깔을 남긴다.
+    k = np.clip((lum.astype(np.float32) - 70) / 90, 0, 1)
+    hsv[..., 1] = (hsv[..., 1] * k).astype(np.uint8)
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
 
