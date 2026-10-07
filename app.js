@@ -422,8 +422,52 @@
   let phase = startScreen ? "start" : "play"; // start → fading → play
   stats.phase = phase;
 
+  const help = document.getElementById("help");
+
+  function openHelp() {
+    if (phase !== "start" || !help) return;
+    help.hidden = false;
+    document.getElementById("help-close").focus();
+  }
+
+  function closeHelp() {
+    if (!help || help.hidden) return;
+    help.hidden = true;
+    document.getElementById("start-help").focus();
+  }
+
+  if (startScreen) {
+    document.getElementById("start-go").addEventListener("click", () => begin());
+    document.getElementById("start-help").addEventListener("click", () => openHelp());
+    document.getElementById("help-close").addEventListener("click", () => closeHelp());
+    help.addEventListener("click", (e) => e.target === help && closeHelp()); // 카드 바깥을 누르면 닫힌다
+  }
+
+  // 시작 화면에서 키를 눌렀을 때: 사용 방법이 열려 있으면 Esc 닫기 · Enter 시작 · 나머지 무시,
+  // 닫혀 있으면 아무 키나 시작. 버튼에 초점이 있을 때 Enter·Space는 그 버튼을 누른 것으로 둔다.
+  function startKey(e) {
+    if (e.key === "Tab") return; // 버튼 사이 이동은 그대로
+    if (e.metaKey || e.ctrlKey || e.altKey) return; // 브라우저 단축키(⌘R 등)는 그대로 둔다
+    const helpOpen = help && !help.hidden;
+    if (helpOpen && e.key === "Enter") {
+      e.preventDefault(); // 사용 방법이 열려 있어도 Enter는 바로 시작
+      if (!e.repeat) begin();
+      return;
+    }
+    const onButton = e.target.closest && e.target.closest("button");
+    if (onButton && (e.key === "Enter" || e.code === "Space")) return;
+    e.preventDefault();
+    if (e.repeat || phase !== "start") return;
+    if (helpOpen) {
+      if (e.key === "Escape") closeHelp();
+      return;
+    }
+    begin();
+  }
+
   function begin() {
     if (phase !== "start") return;
+    if (help) help.hidden = true;
     unlockAudio();
     phase = stats.phase = "fading";
     startScreen.classList.add("out");
@@ -437,8 +481,7 @@
 
   window.addEventListener("keydown", (e) => {
     if (phase !== "play") {
-      if (!e.metaKey && !e.ctrlKey && !e.altKey) e.preventDefault(); // 브라우저 단축키(⌘R 등)는 그대로 둔다
-      if (!e.repeat) begin();
+      startKey(e);
       return;
     }
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return; // 꾹 누르고 있을 때의 자동 반복은 무시
@@ -486,6 +529,8 @@
   // 손가락마다 pointerdown이 따로 오므로 여러 손가락을 동시에 눌러도 각각 울린다
   window.addEventListener("pointerdown", (e) => {
     if (e.target.closest && e.target.closest("#notice")) return;
+    // 시작 화면의 버튼과 사용 방법 창은 click으로 따로 처리한다 (사용 방법은 시작하지 않는다)
+    if (phase !== "play" && e.target.closest && e.target.closest("button, #help")) return;
     e.preventDefault();
     if (phase !== "play") {
       begin();
