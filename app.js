@@ -415,9 +415,32 @@
     if (state.recorder.state !== "inactive") state.recorder.stop();
   }
 
+  // ---- 시작 화면 ----
+  // 처음 누른 키(또는 터치)는 소리를 켜는 데만 쓰고, 시작 화면을 0.7초 동안 지운다. 지우는 동안의 입력은 무시한다.
+
+  const startScreen = document.getElementById("start");
+  let phase = startScreen ? "start" : "play"; // start → fading → play
+  stats.phase = phase;
+
+  function begin() {
+    if (phase !== "start") return;
+    unlockAudio();
+    phase = stats.phase = "fading";
+    startScreen.classList.add("out");
+    setTimeout(() => {
+      startScreen.remove();
+      phase = stats.phase = "play";
+    }, 700);
+  }
+
   // ---- 입력 ----
 
   window.addEventListener("keydown", (e) => {
+    if (phase !== "play") {
+      if (!e.metaKey && !e.ctrlKey && !e.altKey) e.preventDefault(); // 브라우저 단축키(⌘R 등)는 그대로 둔다
+      if (!e.repeat) begin();
+      return;
+    }
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return; // 꾹 누르고 있을 때의 자동 반복은 무시
     if (e.code === "Space") {
       e.preventDefault();
@@ -464,6 +487,10 @@
   window.addEventListener("pointerdown", (e) => {
     if (e.target.closest && e.target.closest("#notice")) return;
     e.preventDefault();
+    if (phase !== "play") {
+      begin();
+      return;
+    }
     unlockAudio();
     if (e.pointerType === "mouse") return; // 마우스 클릭은 소리만 켜고 연주는 키보드로
     const cell = cellAt(e.clientX, e.clientY);

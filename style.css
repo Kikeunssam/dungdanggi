@@ -131,3 +131,54 @@ html, body {
 @keyframes rec-blink {
   to { visibility: hidden; }
 }
+
+/* 시작 화면: 뱅크 1과 같은 바랜 한지 위에 제목. 아무 키나 누르거나 화면을 만지면 사라진다 */
+#start {
+  position: fixed;
+  inset: 0;
+  z-index: 100003;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
+  background: #e9dcc3 url("assets/hanji_aged.jpg") center / cover no-repeat;
+  text-align: center;
+  transition: opacity 0.7s ease;
+}
+
+#start.out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.start-title {
+  margin: 0;
+  font: normal clamp(72px, 24vmin, 260px) / 1 "Dungdanggi Brush", "Nanum Brush Script", serif;
+  color: #23262b;
+  letter-spacing: 0.02em;
+}
+
+.start-sub {
+  margin: 0.6em 0 0;
+  font: normal clamp(15px, 2.9vmin, 28px) / 1.4 "Dungdanggi Myeongjo", "Nanum Myeongjo", "AppleMyungjo", serif;
+  color: rgba(35, 38, 43, 0.62);
+  letter-spacing: 0.22em;
+}
+
+.start-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(9vh + env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  font: normal clamp(12px, 1.9vmin, 17px) / 1.4 "Dungdanggi Myeongjo", "Nanum Myeongjo", "AppleMyungjo", serif;
+  color: rgba(35, 38, 43, 0.5);
+  letter-spacing: 0.15em;
+  animation: start-hint 3.2s ease-in-out infinite;
+}
+
+@keyframes start-hint {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.9; }
+}
