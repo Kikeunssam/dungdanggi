@@ -251,17 +251,48 @@
     if (pad.voices.length > VOICES_PER_PAD) pad.voices.shift().stop();
   }
 
-  // iOS·안드로이드는 사용자가 처음 화면을 만질 때 소리를 켜 줘야 한다 (무음 한 번 재생)
+  // 휴대폰은 손가락을 뗄 때(touchend·pointerup·click)에만 소리를 켤 수 있다.
+  // (손가락을 댈 때 pointerdown은 브라우저가 '사용자가 허락한 동작'으로 치지 않아 소리가 꺼진 채로 남는다.)
+  // 아이폰은 무음 스위치를 켜 두면 Web Audio 소리가 나지 않으므로, 재생용 오디오 세션으로 바꿔 둔다.
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = "playback"; // iOS 17 이상 Safari
+  } catch (e) {}
   let unlocked = false;
+  let sessionAudio = null;
   function unlockAudio() {
-    if (audio.state !== "running") audio.resume();
-    if (unlocked) return;
-    unlocked = true;
+    if (audio.state !== "running") {
+      const p = audio.resume();
+      if (p && p.catch) p.catch(() => {});
+    }
+    if (unlocked && audio.state === "running") return;
+    // 1샘플 무음을 한 번 재생해 소리 길을 연다
     const s = audio.createBufferSource();
     s.buffer = audio.createBuffer(1, 1, 22050);
     s.connect(audio.destination);
     s.start(0);
+    // 옛 iOS: 무음 HTML 오디오를 한 번 틀어 무음 스위치와 상관없이 소리가 나게 한다
+    if (!sessionAudio && !navigator.audioSession && /iP(hone|ad|od)|Macintosh/.test(navigator.userAgent) && "ontouchend" in document) {
+      sessionAudio = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YQAAAAA=");
+      sessionAudio.setAttribute("playsinline", "");
+      const p = sessionAudio.play();
+      if (p && p.catch) p.catch(() => {});
+    }
+    unlocked = true;
+    stats.audioState = audio.state;
   }
+
+  for (const type of ["touchend", "pointerup", "click", "keydown"]) {
+    window.addEventListener(type, unlockAudio, { capture: true, passive: true });
+  }
+  // 다른 앱에 다녀오거나 화면이 꺼졌다 켜지면 소리가 멈춰 있을 수 있어 다시 켠다
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && audio.state !== "running") {
+      const p = audio.resume();
+      if (p && p.catch) p.catch(() => {});
+    }
+  });
+  audio.addEventListener && audio.addEventListener("statechange", () => (stats.audioState = audio.state));
+
 
   function trigger(key) {
     const pad = bank.pads.get(key);
