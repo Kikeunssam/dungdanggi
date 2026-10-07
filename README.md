@@ -24,6 +24,11 @@
 - Chrome 설정의 '다운로드 전에 각 파일의 저장 위치 확인'이 켜져 있으면 저장할 때마다 저장 창이 뜬다
   (페이지에서 끌 수 없다. 끄려면 Chrome 설정 → 다운로드).
 
+## 온라인 (Firebase Hosting)
+
+https://dungdanggi.web.app — 휴대폰·PC 어디서나 열 수 있고, https라 녹화(Shift+R)도 된다.
+다시 올리려면 앱 폴더에서 `firebase deploy --only hosting` (앱이 쓰지 않는 파일은 `firebase.json`의 `ignore`로 뺀다).
+
 ## 휴대폰·태블릿 (터치)
 
 맥과 같은 Wi-Fi에서, 앱 폴더에서 아래 명령을 실행한 뒤 휴대폰 브라우저로 `http://<맥 IP>:8000/` 을 연다

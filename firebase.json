@@ -1,0 +1,46 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/__pycache__/**",
+      ".gitignore",
+      ".firebase/**",
+      ".git",
+      ".git/**",
+      ".firebaserc",
+      "**/.*",
+      "**/node_modules/**",
+      "README.md",
+      "*.py",
+      "sounds.js",
+      "clip_timing.js",
+      "tools/**",
+      "design/**",
+      "clips/v2/**",
+      "clips/v3/**",
+      "clips/ink0*.mp4",
+      "assets/fonts/**"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(mp4|wav|jpg|png|svg)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=604800"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css|html)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  }
+}
