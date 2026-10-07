@@ -56,7 +56,7 @@ def fbm(h, w, cell, rng, octaves=4):
 class Pearl:
     """자개 모자이크: 조각(보로노이 셀)마다 색조·밝기가 다르고, 조각 사이에 가는 이음선."""
 
-    def __init__(self, seed, cell=26, sweep_ang=25, sweep_t=(0.7, 2.9)):
+    def __init__(self, seed, cell=26, sweep_ang=25, sweep_t=(0.7, 2.9), hue_off=0.0, spread=0.35, sat_k=1.0):
         rng = np.random.default_rng(seed)
         pts = np.zeros((H, W), np.uint8) + 255
         n = int(W * H / cell ** 2)
@@ -70,7 +70,8 @@ class Pearl:
         cell_a = rng.uniform(0, pi, k).astype(np.float32)
         cell_p = rng.uniform(0, 2 * pi, k).astype(np.float32)
         flow = fbm(H, W, 420, rng, 3)
-        self.hue0 = (cell_h[lab] * 0.35 + 0.5 + 0.35 * flow) % 1.0       # 0..1
+        self.hue0 = (cell_h[lab] * spread + 0.5 + hue_off + 0.35 * flow) % 1.0       # 0..1
+        self.sat_k = sat_k
         yy0, xx0 = np.mgrid[0:H, 0:W].astype(np.float32)
         ca, sa = np.cos(cell_a[lab]), np.sin(cell_a[lab])
         streak = np.sin((xx0 * ca + yy0 * sa) / 7.0 + cell_p[lab])        # 조개껍데기 결
@@ -92,7 +93,7 @@ class Pearl:
         pos = self.pmin - 500 + f * (self.pmax - self.pmin + 1000)
         band = np.exp(-((self.proj - pos) / 260.0) ** 2)
         hue = (self.hue0 + 0.25 * band + 0.05 * t + 0.04 * self.streak) % 1.0
-        sat = 0.1 + 0.2 * band + 0.06 * np.sin(6.28 * self.hue0)
+        sat = (0.1 + 0.2 * band + 0.06 * np.sin(6.28 * self.hue0)) * self.sat_k
         val = np.clip(self.val * (0.86 + 0.3 * band), 0, 1)
         hsv = np.dstack([hue * 180, sat * 255, val * 255]).astype(np.uint8)
         rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR).astype(np.float32) / 255
