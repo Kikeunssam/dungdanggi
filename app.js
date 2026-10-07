@@ -22,7 +22,8 @@
   const banks = window.BANKS.map((b, i) => {
     const bg = document.createElement("div");
     bg.className = "bg";
-    bg.style.backgroundImage = `url("${b.background}")`;
+    if (b.background.startsWith("#")) bg.style.backgroundColor = b.background; // 단색 배경
+    else bg.style.backgroundImage = `url("${b.background}")`;
     bg.classList.toggle("on", i === 0);
     stage.appendChild(bg);
     return { ...b, defs: b.pads, index: i, bg, pads: new Map() }; // pads: key -> { def, bank, buffer, voices, lastFlip }
@@ -90,7 +91,7 @@
     if (v.pad === pad && v.getAttribute("src")) return;
     v.pad = pad;
     v.style.mixBlendMode = pad.bank.blend;
-    v.src = pad.def.clip;
+    v.src = pad.clip || pad.def.clip; // 섞음 뱅크 패드는 섞음용 영상(pad.clip)을 쓴다
     v.load();
   }
 
@@ -143,12 +144,49 @@
   }
 
   // 데스크톱은 키마다 하나씩 미리 열어 둔다 (한도까지). 휴대폰은 누를 때 연다.
-  function warmUp() {
+  // 이미 만든 영상 중 쉬는 것은 새 뱅크의 클립으로 바꿔 열어, 영상 수가 한도를 넘지 않게 한다.
+  function warmUp(b = banks[0]) {
     if (MOBILE) return;
-    for (const pad of banks[0].pads.values()) {
-      if (videos.length >= MAX_VIDEOS) break;
-      assign(createVideo(), pad);
+    const idle = videos.filter((v) => !v.classList.contains("on"));
+    for (const pad of b.pads.values()) {
+      if (videos.some((v) => v.pad === pad)) continue;
+      if (idle.length) assign(idle.shift(), pad);
+      else if (videos.length < MAX_VIDEOS) assign(createVideo(), pad);
+      else break;
     }
+  }
+
+  // ---- 섞음 뱅크 ----
+  // 들어올 때마다 뱅크 1~3에서 서로 다른 패드 26개를 9/9/8개(8개 뱅크는 무작위)로 골라 키에 섞는다.
+  // 고른 패드는 원래 소리·영상·반전을 그대로 쓴다.
+
+  function shuffle(list) {
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  function buildMix(mix) {
+    const sources = banks.filter((b) => !b.mix && b.pads.size);
+    const keys = GRID.slice(0, 26);
+    const counts = sources.map(() => Math.floor(keys.length / sources.length));
+    shuffle(sources.map((_, i) => i))
+      .slice(0, keys.length - counts.reduce((a, b) => a + b, 0))
+      .forEach((i) => counts[i]++);
+    const picked = sources.flatMap((b, i) => shuffle([...b.pads.values()]).slice(0, counts[i]));
+    shuffle(picked);
+    mix.pads = new Map();
+    keys.forEach((key, i) => {
+      const src = picked[i];
+      if (!src) return;
+      const look = (mix.looks && mix.looks[src.bank.index]) || {};
+      const clip = look.dir ? look.dir + src.def.clip.split("/").pop() : src.def.clip;
+      mix.pads.set(key, { def: src.def, clip, bank: mix, src, buffer: src.buffer, voices: [], lastFlip: 0 });
+    });
+    // 테스트용: 지금 섞인 배치
+    window.dungdanggiMix = [...mix.pads].map(([key, p]) => ({ key, bank: p.src.bank.index, clip: p.clip, sound: p.def.sound || null }));
   }
 
   // ---- 소리 ----
@@ -198,6 +236,7 @@
   function switchBank() {
     bank = banks[(bank.index + 1) % banks.length];
     stats.bank = bank.index;
+    if (bank.mix) buildMix(bank);
     for (const b of banks) b.bg.classList.toggle("on", b === bank);
     // 다른 뱅크 영상이 새 배경 위에 남지 않도록 바로 감춘다 (울리고 있는 소리는 끝까지 둔다)
     for (const v of videos) {
@@ -208,6 +247,7 @@
       }
     }
     label.textContent = bank.name;
+    warmUp(bank); // 쉬는 영상은 새 뱅크 클립으로 미리 열어 둔다
     label.classList.add("on");
     clearTimeout(labelTimer);
     labelTimer = setTimeout(() => label.classList.remove("on"), 600);

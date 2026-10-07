@@ -1,4 +1,4 @@
-// 뱅크(악기 묶음) 여러 개. PC는 스페이스바, 터치는 오른쪽 아래 칸으로 다음 뱅크로 넘어간다 (1→2→3→1).
+// 뱅크(악기 묶음) 여러 개. PC는 스페이스바, 터치는 오른쪽 아래 칸으로 다음 뱅크로 넘어간다 (1→2→3→4→1).
 // 뱅크마다 배경 그림과 영상 겹치는 방식(blend)을 정한다:
 //   multiply = 종이에 먹이 스미듯 겹친다 (흰 바탕은 사라지고, 옅은 담묵·담채도 종이색과 섞여 자연스럽다)
 //   darken  = 밝은 종이 위 먹·색 (흰 바탕·종이색은 사라지고 그림만 남는다)
@@ -105,5 +105,20 @@ window.BANKS = [
       { key: "n", name: "거문고 높은 음 · 소나무 가지", sound: "sounds/geomungo_high.wav", clip: "clips/najeon/nj25_pine_branch.mp4", flip: true },
       { key: "m", name: "25현 가야금 낮은 음 · 꽃 테두리", sound: "sounds/gayageum25_low.wav", clip: "clips/najeon/nj26_flower_frame.mp4", flip: true },
     ],
+  },
+  {
+    // 섞음: 이 뱅크로 들어올 때마다 뱅크 1~3 패드 26개를 9/9/8개씩 무작위로 골라 키에 섞어 놓는다.
+    // 회색 바탕 위에 모두 lighten 으로 겹친다. 뱅크 1·2 패드는 검은 바탕용으로 다시 만든 영상을 쓴다
+    // (looks: 뱅크 1, 2, 3 순서. dir 이 있으면 같은 파일 이름을 그 폴더에서 찾는다).
+    name: "섞음",
+    background: "assets/gray_mix.jpg",
+    blend: "lighten",
+    mix: true,
+    looks: [
+      { dir: "clips/mix/sumuk/" },     // 수묵: 먹을 흰색으로 반전, 검은 바탕
+      { dir: "clips/mix/dancheong/" }, // 단청: 흰 종이를 검게, 색은 그대로
+      {},                              // 자개: 원래 영상 그대로 (검은 바탕)
+    ],
+    pads: [],
   },
 ];
