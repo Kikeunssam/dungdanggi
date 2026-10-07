@@ -160,6 +160,34 @@ html, body {
   box-sizing: border-box;
 }
 
+/* 줄을 바꿀 때 낱말·문장이 중간에서 끊기지 않게: 한글은 띄어쓰기에서만 줄바꿈하고,
+   문장(.s)·바닥글 덩어리는 통째로 다음 줄로 넘긴다 (한 줄보다 긴 문장만 그 안에서 띄어쓰기로 나뉜다) */
+#start,
+#notice {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+#start .s,
+.start-footer span {
+  display: inline-block;
+}
+
+#start .s {
+  text-wrap: pretty; /* 한 줄보다 긴 문장도 끝 낱말 하나만 외따로 남지 않게 */
+}
+
+#start .nw {
+  display: inline;
+  white-space: nowrap; /* '1 수묵'처럼 붙어 다니는 말 */
+}
+
+#start .sub,
+#start .hint,
+#start .card h2 {
+  text-wrap: balance;
+}
+
 /* 아래쪽 넝쿨 문양지 띠: 위로 갈수록 한지로 스며든다 */
 #start .band {
   position: absolute;
@@ -427,6 +455,17 @@ html, body {
   margin-top: 28px;
 }
 
+/* 바닥글이 한 줄에 다 들어가지 않는 폭부터는 세 덩어리를 한 줄씩 쌓고 구분선은 감춘다 */
+@media (max-width: 760px) {
+  .start-footer span {
+    display: block;
+  }
+
+  .start-footer i {
+    display: none;
+  }
+}
+
 /* 좁은 화면 (휴대폰 세로) */
 @media (max-width: 640px) {
   #start .logo.A img,
@@ -438,14 +477,6 @@ html, body {
     font-size: 14px;
     letter-spacing: 0.2em;
     margin-right: -0.2em;
-  }
-
-  .start-footer span {
-    display: block; /* 세 덩어리를 한 줄씩 */
-  }
-
-  .start-footer i {
-    display: none;
   }
 
   #start .card {
