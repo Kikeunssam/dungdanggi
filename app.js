@@ -59,9 +59,43 @@
     return new Promise((resolve, reject) => audio.decodeAudioData(bytes, resolve, reject));
   }
 
-  async function loadPad(b, def) {
-    const buffer = def.sound ? await decode(await loadSoundBytes(def.sound)) : null; // 소리 없는 패드도 된다
-    b.pads.set(def.key, { def, bank: b, buffer, voices: [], lastFlip: 0 });
+  // 패드는 처음부터 모두 만들어 두고, 소리는 필요할 때 받는다 (웹에서 한꺼번에 받지 않도록).
+  for (const b of banks) for (const def of b.defs) b.pads.set(def.key, { def, bank: b, buffer: null, voices: [], lastFlip: 0 });
+
+  // 패드의 소리를 받아 디코드한다. 섞음 뱅크의 패드는 원래 패드(src)의 소리를 같이 쓴다.
+  function ensureSound(pad) {
+    const p = pad.src || pad;
+    if (!p.def.sound || p.buffer) {
+      pad.buffer = p.buffer;
+      return Promise.resolve(pad);
+    }
+    if (!p.loading) {
+      p.loading = loadSoundBytes(p.def.sound)
+        .then(decode)
+        .then((buffer) => (p.buffer = buffer))
+        .catch((err) => {
+          p.loading = null; // 다음에 다시 받아 본다
+          throw err;
+        });
+    }
+    return p.loading.then((buffer) => {
+      pad.buffer = buffer;
+      return pad;
+    });
+  }
+
+  function loadPads(list) {
+    return Promise.all([...list].map(ensureSound));
+  }
+
+  // 지금 뱅크 다음에 올 뱅크의 소리를 미리 받아 둔다 (섞음이면 다음에 쓸 배치를 미리 정해 그 26개만)
+  function prefetchNext() {
+    const next = banks[(bank.index + 1) % banks.length];
+    if (next.mix) {
+      if (!next.upcoming) next.upcoming = makeMix(next);
+      return loadPads(next.upcoming.values());
+    }
+    return loadPads(next.pads.values());
   }
 
   // ---- 영상 ----
@@ -172,6 +206,13 @@
   }
 
   function buildMix(mix) {
+    mix.pads = mix.upcoming || makeMix(mix);
+    mix.upcoming = null;
+    // 테스트용: 지금 섞인 배치
+    window.dungdanggiMix = [...mix.pads].map(([key, p]) => ({ key, bank: p.src.bank.index, clip: p.clip, sound: p.def.sound || null }));
+  }
+
+  function makeMix(mix) {
     const sources = banks.filter((b) => !b.mix && b.pads.size);
     const keys = GRID.slice(0, 26);
     const counts = sources.map(() => Math.floor(keys.length / sources.length));
@@ -180,16 +221,15 @@
       .forEach((i) => counts[i]++);
     const picked = sources.flatMap((b, i) => shuffle([...b.pads.values()]).slice(0, counts[i]));
     shuffle(picked);
-    mix.pads = new Map();
+    const pads = new Map();
     keys.forEach((key, i) => {
       const src = picked[i];
       if (!src) return;
       const look = (mix.looks && mix.looks[src.bank.index]) || {};
       const clip = look.dir ? look.dir + src.def.clip.split("/").pop() : src.def.clip;
-      mix.pads.set(key, { def: src.def, clip, bank: mix, src, buffer: src.buffer, voices: [], lastFlip: 0 });
+      pads.set(key, { def: src.def, clip, bank: mix, src, buffer: src.buffer, voices: [], lastFlip: 0 });
     });
-    // 테스트용: 지금 섞인 배치
-    window.dungdanggiMix = [...mix.pads].map(([key, p]) => ({ key, bank: p.src.bank.index, clip: p.clip, sound: p.def.sound || null }));
+    return pads;
   }
 
   // ---- 소리 ----
@@ -227,10 +267,22 @@
     const pad = bank.pads.get(key);
     if (!pad) return false;
     if (audio.state !== "running") audio.resume();
+    if (pad.def.sound && !pad.buffer) {
+      // 아직 받지 않은 소리: 받자마자 소리와 그림을 함께 낸다 (그 사이 뱅크를 바꿨으면 그만둔다)
+      const b = bank;
+      ensureSound(pad)
+        .then(() => b === bank && fire(pad))
+        .catch((err) => console.warn("소리를 받을 수 없음:", pad.def.sound, err));
+      return true;
+    }
+    fire(pad);
+    return true;
+  }
+
+  function fire(pad) {
     stats.triggers++;
     playSound(pad);
     playVideo(pad);
-    return true;
   }
 
   // ---- 뱅크 바꾸기 ----
@@ -251,6 +303,9 @@
     }
     label.textContent = bank.name;
     warmUp(bank); // 쉬는 영상은 새 뱅크 클립으로 미리 열어 둔다
+    loadPads(bank.pads.values())
+      .then(prefetchNext)
+      .catch((err) => console.warn("소리를 미리 받지 못함:", err));
     label.classList.add("on");
     clearTimeout(labelTimer);
     labelTimer = setTimeout(() => label.classList.remove("on"), 600);
@@ -551,10 +606,14 @@
   document.addEventListener("dblclick", (e) => e.preventDefault());
   document.addEventListener("gesturestart", (e) => e.preventDefault());
 
-  Promise.all(banks.flatMap((b) => b.defs.map((def) => loadPad(b, def))))
+  // 처음에는 뱅크 1 소리만 받고, 다음 뱅크는 그 뒤에 조용히 받는다.
+  // 파일로 연 경우(file://)는 sounds.js에 소리가 모두 들어 있으니 전부 바로 준비한다.
+  loadPads(banks[0].pads.values())
     .then(() => {
-      stats.loadedMs = Math.round(performance.now()); // 모든 소리를 다 불러온 시각 (테스트용)
+      stats.loadedMs = Math.round(performance.now()); // 뱅크 1 소리를 다 준비한 시각 (테스트용)
       warmUp();
+      if (location.protocol === "file:") return loadPads(banks.flatMap((b) => [...b.pads.values()]));
+      return prefetchNext();
     })
     .catch((err) => {
       const hint = location.protocol === "file:" ? " (소리를 바꿨다면 python3 make_sounds_js.py 를 한 번 실행해 주세요)" : "";

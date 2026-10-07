@@ -20,11 +20,12 @@
       "clips/v2/**",
       "clips/v3/**",
       "clips/ink0*.mp4",
-      "assets/fonts/**"
+      "assets/fonts/**",
+      "sounds/*.wav"
     ],
     "headers": [
       {
-        "source": "**/*.@(mp4|wav|jpg|png|svg)",
+        "source": "**/*.@(mp4|wav|m4a|jpg|png|svg)",
         "headers": [
           {
             "key": "Cache-Control",
@@ -34,6 +35,15 @@
       },
       {
         "source": "**/*.@(js|css|html)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/",
         "headers": [
           {
             "key": "Cache-Control",

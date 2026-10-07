@@ -27,6 +27,7 @@
 ## 온라인 (Firebase Hosting)
 
 https://dungdanggi.web.app — 휴대폰·PC 어디서나 열 수 있고, https라 녹화(Shift+R)도 된다.
+웹에서는 처음에 뱅크 1 소리만 받고, 다음 뱅크 소리는 뒤에서 미리 받는다 (섞음은 다음에 쓸 26개만). 아직 안 받은 소리를 누르면 받자마자 울린다.
 다시 올리려면 앱 폴더에서 `firebase deploy --only hosting` (앱이 쓰지 않는 파일은 `firebase.json`의 `ignore`로 뺀다).
 
 ## 휴대폰·태블릿 (터치)
@@ -177,6 +178,8 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 
 - 영상: 1920x1080, 한지 배경 위 먹, 마지막 프레임이 빈 종이인 클립 (`clips/` ink01~06, `clips/v2/` ink01~20, `clips/v3/` ink21~23, `clips/sumuk/` 모두 같은 형식). 뱅크 1은 지금 `clips/sumuk/`(소리 파형으로 만든 영상)을 쓴다.
   화면에서는 뱅크의 배경 위에 뱅크의 겹치기 방식(수묵: 곱하기 multiply, 단청: 어둡게 darken)으로 겹쳐서 그림만 보이게 한다.
+- 소리는 `sounds/*.m4a`(AAC 256kbps, 꽹과리는 320kbps)를 쓴다. 원본 wav는 `sounds/*.wav`로 남겨 두고 배포에서는 뺀다.
+  새 wav를 넣으면 `afconvert -f m4af -d aac -b 256000 -q 127 -s 0 원본.wav 새이름.m4a`로 바꾼 뒤 `pads.js` 경로를 바꾼다.
 - 소리를 바꾸거나 추가했으면 `python3 make_sounds_js.py`를 한 번 실행한다. 파일로 바로 열 때는
   브라우저가 음원 파일을 직접 못 읽어서, 음원을 `sounds.js`에 담아 두고 쓰기 때문이다.
 - 소리: wav/mp3 등 브라우저가 읽는 형식. 앞쪽 무음은 잘라 두어야 누르는 순간 바로 소리가 난다
