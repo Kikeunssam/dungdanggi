@@ -1,4 +1,4 @@
-// 뱅크(악기 묶음) 여러 개. PC는 스페이스바, 터치는 오른쪽 아래 칸으로 뱅크를 바꾼다.
+// 뱅크(악기 묶음) 여러 개. PC는 스페이스바, 터치는 오른쪽 아래 칸으로 다음 뱅크로 넘어간다 (1→2→3→1).
 // 뱅크마다 배경 그림과 영상 겹치는 방식(blend)을 정한다:
 //   multiply = 종이에 먹이 스미듯 겹친다 (흰 바탕은 사라지고, 옅은 담묵·담채도 종이색과 섞여 자연스럽다)
 //   darken  = 밝은 종이 위 먹·색 (흰 바탕·종이색은 사라지고 그림만 남는다)
@@ -71,6 +71,17 @@ window.BANKS = [
       { key: "b", name: "단소 7 · 흐르는 구름", sound: "sounds/danso_7.wav", clip: "clips/dancheong/dc24_cloud_drift.mp4", flip: true },
       { key: "n", name: "대금 니나 3 · 육각 십자", sound: "sounds/daegeum_nina_03.wav", clip: "clips/dancheong/dc25_hexa_cross.mp4", flip: true },
       { key: "m", name: "대금 니나 4 · 모서리 부채", sound: "sounds/daegeum_nina_04.wav", clip: "clips/dancheong/dc26_corner_fans.mp4", flip: true },
+    ],
+  },
+  {
+    name: "자개",
+    background: "assets/lacquer.jpg",
+    blend: "lighten", // 검은 바탕 영상: 검정은 사라지고 자개 빛만 남는다
+    pads: [
+      { key: "a", name: "솔잎 부채",      clip: "clips/najeon/nj01_pine_fans.mp4", flip: true },
+      { key: "s", name: "나비와 꽃",      clip: "clips/najeon/nj02_butterfly_flower.mp4", flip: true },
+      { key: "d", name: "수복 원문과 박쥐", clip: "clips/najeon/nj03_longevity_bats.mp4", flip: true },
+      { key: "f", name: "넝쿨 띠",        clip: "clips/najeon/nj04_flower_vine.mp4", flip: true },
     ],
   },
 ];
