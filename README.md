@@ -34,7 +34,7 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 |---|---|---|---|
 | 1 수묵 | 누렇게 바랜 한지 (`assets/hanji_aged.jpg`) | multiply (종이에 먹이 스미듯 겹침) | 아래 26개 키, 소리+영상 |
 | 2 단청 | 한지 (`assets/hanji.jpg`) | darken (흰 바탕은 사라지고 색만 남음) | 26개 키 모두 관악기·대금 소리 + 단청 문양 영상 (`clips/dancheong/` dc01~dc26) — 아래 표 |
-| 3 자개 | 검은 옻칠 (`assets/lacquer.jpg`) | lighten (검은 바탕은 사라지고 자개 빛만 남음) | 26개 키 모두 자개 문양 영상 (`clips/najeon/` nj01~nj26, 소리 없음) — 아래 표 |
+| 3 자개 | 검은 옻칠 (`assets/lacquer.jpg`) | lighten (검은 바탕은 사라지고 자개 빛만 남음) | 26개 키 모두 현악기(가야금·거문고·아쟁·양금) 소리 + 자개 문양 영상 (`clips/najeon/` nj01~nj26, 영상 길이 = 소리 길이) — 아래 표 |
 
 `pads.js`의 `window.BANKS`에서 뱅크별로 패드를 적고,
 `sound`를 빼면 영상만 나오는 패드가 된다.
@@ -111,34 +111,36 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 
 ## 키 배치 (뱅크 3 자개)
 
-| 키 | 영상 |
-|---|---|
-| a | nj01_pine_fans (솔잎 부채) |
-| s | nj02_butterfly_flower (나비와 꽃) |
-| d | nj03_longevity_bats (수복 원문과 박쥐) |
-| f | nj04_flower_vine (넝쿨 띠) |
-| q | nj05_stripes (줄무늬) |
-| w | nj06_diamond_lattice (마름모 격자) |
-| e | nj07_pearl_dots (자개 점) |
-| r | nj08_hatch_sweep (빗살) |
-| t | nj09_spinning_rings (도는 고리) |
-| y | nj10_tortoise_hex (거북등) |
-| u | nj11_thunder_fret (뇌문 띠) |
-| i | nj12_chilbo_rings (칠보 고리) |
-| o | nj13_bamboo (대나무) |
-| p | nj14_sparkles (반짝이 별) |
-| g | nj15_wave_scales (물결 비늘) |
-| h | nj16_cranes (학 떼) |
-| j | nj17_chrysanthemums (국화) |
-| k | nj18_plum_branch (매화 가지) |
-| l | nj19_peony (모란) |
-| z | nj20_cloud_scrolls (구름) |
-| x | nj21_lotus_pond (연못 연꽃) |
-| c | nj22_circling_fish (맴도는 물고기) |
-| v | nj23_kaleidoscope (만화경) |
-| b | nj24_grape_vine (포도 넝쿨) |
-| n | nj25_pine_branch (소나무 가지) |
-| m | nj26_flower_frame (꽃 테두리) |
+현악기 소리 26개. 영상은 소리 길이(1.6~4초)에 맞춰 만들어 두어서, 소리가 끝날 때 무늬도 함께 사라진다.
+
+| 키 | 소리 | 영상 |
+|---|---|---|
+| a | 산조가야금 튕김 (`sanjo_gayageum_twigim`) | nj01_pine_fans (솔잎 부채) |
+| s | 정악가야금 튕기기 (`jeongak_gayageum_flick`) | nj02_butterfly_flower (나비와 꽃) |
+| d | 거문고 퇴성 (`geomungo_toesung`) | nj03_longevity_bats (수복 원문과 박쥐) |
+| f | 산조가야금 굴림 (`sanjo_gayageum_gullim`) | nj04_flower_vine (넝쿨 띠) |
+| q | 정악가야금 짧게 뜯기 (`jeongak_gayageum_stacc`) | nj05_stripes (줄무늬) |
+| w | 양금 짧게 치기 (`yanggeum_staccato`) | nj06_diamond_lattice (마름모 격자) |
+| e | 양금 트릴 (`yanggeum_trill`) | nj07_pearl_dots (자개 점) |
+| r | 25현 가야금 글리산도 (`gayageum25_gliss`) | nj08_hatch_sweep (빗살) |
+| t | 거문고 추성 (`geomungo_chusung`) | nj09_spinning_rings (도는 고리) |
+| y | 거문고 낮은 음 (`geomungo_low`) | nj10_tortoise_hex (거북등) |
+| u | 거문고 전성 (`geomungo_junsung`) | nj11_thunder_fret (뇌문 띠) |
+| i | 산조가야금 한 음 (`sanjo_gayageum_note`) | nj12_chilbo_rings (칠보 고리) |
+| o | 아쟁 빠른 가락 (`ajaeng_run`) | nj13_bamboo (대나무) |
+| p | 25현 가야금 트레몰로 (`gayageum25_tremolo`) | nj14_sparkles (반짝이 별) |
+| g | 25현 가야금 농현 (`gayageum25_nonghyun`) | nj15_wave_scales (물결 비늘) |
+| h | 아쟁 긴 음 (`ajaeng_long`) | nj16_cranes (학 떼) |
+| j | 양금 강세 (`yanggeum_accent`) | nj17_chrysanthemums (국화) |
+| k | 아쟁 높은 음 (`ajaeng_high`) | nj18_plum_branch (매화 가지) |
+| l | 25현 가야금 높은 음 (`gayageum25_high`) | nj19_peony (모란) |
+| z | 산조가야금 농현 (`sanjo_gayageum_nong`) | nj20_cloud_scrolls (구름) |
+| x | 정악가야금 한 음 (`jeongak_gayageum_note`) | nj21_lotus_pond (연못 연꽃) |
+| c | 산조가야금 꺾는 소리 (`sanjo_gayageum_break`) | nj22_circling_fish (맴도는 물고기) |
+| v | 양금 강세 2 (`yanggeum_accent2`) | nj23_kaleidoscope (만화경) |
+| b | 정악가야금 전성 (`jeongak_gayageum_jun`) | nj24_grape_vine (포도 넝쿨) |
+| n | 거문고 높은 음 (`geomungo_high`) | nj25_pine_branch (소나무 가지) |
+| m | 25현 가야금 낮은 음 (`gayageum25_low`) | nj26_flower_frame (꽃 테두리) |
 
 ## 소리·영상 바꾸기
 
