@@ -322,6 +322,35 @@ html, body {
   vertical-align: 0.12em;
 }
 
+/* 보조 버튼 (개발자 문의): 같은 亞자 먹선이되 작고 옅게 */
+#start a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+#start .btn.small {
+  --c: 4px;
+  font-size: clamp(11px, 0.9vw, 13px);
+  letter-spacing: 0.25em;
+  padding: 0.7em 1.5em 0.7em 1.75em;
+  margin-top: calc(-1 * clamp(4px, 1.4vh, 14px)); /* 위 버튼 줄과 조금 붙여 한 무리로 보이게 */
+  color: var(--ink2);
+}
+
+#start .btn.small::before {
+  background: rgba(31, 33, 36, 0.45);
+}
+
+#start .btn.small::after {
+  --c: 3.5px;
+  inset: 1px;
+}
+
+#start .btn.small:hover,
+#start .btn.small:focus-visible {
+  color: var(--ink);
+}
+
 #start .hint {
   font-size: 12px;
   letter-spacing: 0.2em;
@@ -455,8 +484,8 @@ html, body {
   margin-top: 28px;
 }
 
-/* 바닥글이 한 줄에 다 들어가지 않는 폭부터는 세 덩어리를 한 줄씩 쌓고 구분선은 감춘다 */
-@media (max-width: 760px) {
+/* 바닥글이 한 줄에 다 들어가지 않는 폭(800px 이하)부터는 세 덩어리를 한 줄씩 쌓고 구분선은 감춘다 */
+@media (max-width: 800px) {
   .start-footer span {
     display: block;
   }
@@ -490,5 +519,17 @@ html, body {
 
   #start .card dd + dt {
     margin-top: 12px;
+  }
+}
+
+/* 키가 낮은 화면 (휴대폰 가로): 도장과 간격을 줄여 아래 바닥글과 겹치지 않게 */
+@media (max-height: 520px) {
+  #start .logo.B img {
+    height: min(34vh, 420px);
+  }
+
+  .start-main {
+    gap: clamp(8px, 2.4vh, 20px);
+    padding-bottom: 14vh;
   }
 }

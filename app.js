@@ -540,7 +540,7 @@
       if (!e.repeat) begin();
       return;
     }
-    const onButton = e.target.closest && e.target.closest("button");
+    const onButton = e.target.closest && e.target.closest("button, a");
     if (onButton && (e.key === "Enter" || e.code === "Space")) return;
     e.preventDefault();
     if (e.repeat || phase !== "start") return;
@@ -616,7 +616,7 @@
   window.addEventListener("pointerdown", (e) => {
     if (e.target.closest && e.target.closest("#notice")) return;
     // 시작 화면의 버튼과 사용 방법 창은 click으로 따로 처리한다 (사용 방법은 시작하지 않는다)
-    if (phase !== "play" && e.target.closest && e.target.closest("button, #help")) return;
+    if (phase !== "play" && e.target.closest && e.target.closest("button, a, #help")) return;
     e.preventDefault();
     if (phase !== "play") {
       begin();
