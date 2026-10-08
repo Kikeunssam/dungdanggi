@@ -322,7 +322,7 @@ html, body {
   vertical-align: 0.12em;
 }
 
-/* 보조 버튼 줄 (개발자 문의 · 활동지 다운로드) */
+/* 보조 버튼 줄 (활동지 다운로드): 시작하기·사용 방법 바로 아래 가운데 */
 #start .sub-btns {
   display: flex;
   flex-wrap: wrap;
@@ -331,11 +331,19 @@ html, body {
   margin-top: calc(-1 * clamp(4px, 1.4vh, 14px)); /* 위 버튼 줄과 조금 붙여 한 무리로 보이게 */
 }
 
-/* 활동지는 PC에서만 (터치 기기에서는 숨기고 개발자 문의만 가운데) */
+/* 활동지는 PC에서만 (터치 기기에서는 줄째 숨긴다) */
 @media (hover: none), (pointer: coarse) {
-  #start .sub-btns a.pc-only {
+  #start .sub-btns.pc-only {
     display: none;
   }
+}
+
+/* 개발자 문의: 화면 오른쪽 위 구석 */
+#start .btn.corner {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  z-index: 2;
 }
 
 /* 보조 버튼: 같은 亞자 먹선이되 작고 옅게 */
