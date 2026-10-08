@@ -322,7 +322,23 @@ html, body {
   vertical-align: 0.12em;
 }
 
-/* 보조 버튼 (개발자 문의): 같은 亞자 먹선이되 작고 옅게 */
+/* 보조 버튼 줄 (개발자 문의 · 활동지 다운로드) */
+#start .sub-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 14px;
+  margin-top: calc(-1 * clamp(4px, 1.4vh, 14px)); /* 위 버튼 줄과 조금 붙여 한 무리로 보이게 */
+}
+
+/* 활동지는 PC에서만 (터치 기기에서는 숨기고 개발자 문의만 가운데) */
+@media (hover: none), (pointer: coarse) {
+  #start .sub-btns a.pc-only {
+    display: none;
+  }
+}
+
+/* 보조 버튼: 같은 亞자 먹선이되 작고 옅게 */
 #start a.btn {
   display: inline-block;
   text-decoration: none;
@@ -333,7 +349,6 @@ html, body {
   font-size: clamp(11px, 0.9vw, 13px);
   letter-spacing: 0.25em;
   padding: 0.7em 1.5em 0.7em 1.75em;
-  margin-top: calc(-1 * clamp(4px, 1.4vh, 14px)); /* 위 버튼 줄과 조금 붙여 한 무리로 보이게 */
   color: var(--ink2);
 }
 

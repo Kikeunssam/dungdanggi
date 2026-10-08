@@ -50,6 +50,15 @@
             "value": "no-cache"
           }
         ]
+      },
+      {
+        "source": "**/*.pdf",
+        "headers": [
+          {
+            "key": "Content-Disposition",
+            "value": "attachment"
+          }
+        ]
       }
     ]
   }
