@@ -442,8 +442,10 @@
       return;
     }
     if (audio.state !== "running") audio.resume();
-    const W = 1920;
-    const H = Math.round((W * window.innerHeight) / window.innerWidth / 2) * 2;
+    // 720p 안에 맞춘다 (화면 비율 그대로, 학생 컴퓨터에서도 버벅이지 않게). 가로·세로는 짝수로.
+    const fit = Math.min(1280 / window.innerWidth, 720 / window.innerHeight);
+    const W = Math.round((window.innerWidth * fit) / 2) * 2;
+    const H = Math.round((window.innerHeight * fit) / 2) * 2;
     const canvas = document.createElement("canvas");
     canvas.width = W;
     canvas.height = H;
@@ -460,7 +462,7 @@
     const dest = audio.createMediaStreamDestination();
     master.connect(dest); // 듣는 소리는 그대로, 같은 소리를 녹화에도 보낸다
     for (const track of dest.stream.getAudioTracks()) stream.addTrack(track);
-    const recorder = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 8000000, audioBitsPerSecond: 192000 });
+    const recorder = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 2500000, audioBitsPerSecond: 192000 });
     const chunks = [];
     const ext = type.startsWith("video/mp4") ? "mp4" : "webm";
     const name = `dungdanggi_${bank.name}_${stamp(new Date())}.${ext}`;
