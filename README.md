@@ -47,6 +47,7 @@ q w e r t y u i o p / a s d f g h j k l / z x c v b n m 이고, 마지막 27번�
 
 닥종이 한지 바탕에 위·아래 당초문 띠가 옅게 스며 있고, 가운데에 세로 도장 로고(`assets/logo_B.svg`), 그 아래 '우리 소리로 그리는 한 폭의 그림',
 亞자 귀 모양 버튼 **시작하기**(먹 바탕·붉은 점)·**사용 방법**, '아무 키나 누르거나 화면을 터치하세요', 맨 아래 저작권·출처 바닥글이 있다.
+글꼴은 앱 전체가 말모이체(`assets/malmoi/` Light·Medium·Bold woff2)이고, 바닥글 끝에 '글꼴은 ‘말모이체’를 사용하였습니다.'를 적는다. 파일로 바로 열 때는 같은 글꼴을 data: 로 넣은 `fonts_file.css`를 읽는다(배포에서는 뺌). 글꼴 파일을 바꾸면 `fonts_file.css`도 다시 만든다.
 로고는 `assets/logo_A.svg`(가로)·`logo_C.svg`로 바꿀 수 있다 (`index.html`의 `logo B` 부분의 글자와 파일 이름을 같이 바꾼다).
 디자인 원본은 `design/start/`.
 

@@ -8,6 +8,10 @@
   <link rel="icon" href="data:,">
   <title>둥당기</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    // 파일로 바로 열 때는 글꼴 파일을 직접 못 읽어서, data: 로 넣은 말모이체(fonts_file.css)를 쓴다.
+    if (location.protocol === "file:") document.write('<link rel="stylesheet" href="fonts_file.css">');
+  </script>
 </head>
 <body>
   <div id="stage"></div>
@@ -28,7 +32,7 @@
       </div>
       <div class="hint">아무 키나 누르거나 화면을 터치하세요</div>
     </main>
-    <footer class="start-footer"><span>© 2026 키큰쌤. All rights reserved.</span><i>|</i><span>Inspired by Lullatone &amp; Jono Brandel’s Patatap</span><i>|</i><span>모든 음원 샘플은 국립국악원 ‘국악 디지털 음원’ 자료를 활용하였습니다.</span></footer>
+    <footer class="start-footer"><span>© 2026 키큰쌤. All rights reserved.</span><i>|</i><span>Inspired by Lullatone &amp; Jono Brandel’s Patatap</span><i>|</i><span>모든 음원 샘플은 국립국악원 ‘국악 디지털 음원’ 자료를 활용하였습니다.</span><i>|</i><span>글꼴은 ‘말모이체’를 사용하였습니다.</span></footer>
     <div id="help" class="veil" hidden>
       <div class="card" role="dialog" aria-modal="true" aria-labelledby="help-title">
         <h2 id="help-title">사용 방법</h2>

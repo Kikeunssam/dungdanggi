@@ -1,3 +1,26 @@
+/* 글꼴: 말모이체 (Light 300 · Medium 400~500 · Bold 600~). 말모이체에 없는 ©·→ 같은 기호만 다음 글꼴로 나온다.
+   파일로 바로 열 때(file://)는 index.html 이 fonts_file.css(data: 로 넣은 같은 글꼴)를 더 읽는다. */
+@font-face {
+  font-family: "MalmoiChe";
+  src: url("assets/malmoi/MalmoiChe-Light.woff2") format("woff2");
+  font-weight: 100 399;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MalmoiChe";
+  src: url("assets/malmoi/MalmoiChe-Medium.woff2") format("woff2");
+  font-weight: 400 599;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MalmoiChe";
+  src: url("assets/malmoi/MalmoiChe-Bold.woff2") format("woff2");
+  font-weight: 600 900;
+  font-display: swap;
+}
+
 html, body {
   margin: 0;
   height: 100%;
@@ -56,7 +79,7 @@ html, body {
   bottom: 24px;
   transform: translateX(-50%);
   max-width: calc(100% - 32px);
-  font: 14px/1.5 system-ui, sans-serif;
+  font: 14px/1.5 "MalmoiChe", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   color: #5a5048;
   background: rgba(255, 255, 255, 0.6);
   padding: 8px 14px;
@@ -88,7 +111,7 @@ html, body {
   right: calc(16px + env(safe-area-inset-right, 0px));
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   z-index: 100001;
-  font: 13px/1 system-ui, sans-serif;
+  font: 13px/1 "MalmoiChe", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   letter-spacing: 0.2em;
   color: rgba(128, 120, 110, 0.75);
   opacity: 0;
@@ -107,7 +130,7 @@ html, body {
   top: calc(14px + env(safe-area-inset-top, 0px));
   left: calc(16px + env(safe-area-inset-left, 0px));
   z-index: 100002;
-  font: 600 13px/1 system-ui, sans-serif;
+  font: 600 13px/1 "MalmoiChe", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   color: #c62828;
   background: rgba(255, 255, 255, 0.7);
   padding: 6px 10px 6px 24px;
@@ -142,7 +165,7 @@ html, body {
   position: fixed;
   inset: 0;
   z-index: 100003;
-  font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-family: "MalmoiChe", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   color: var(--ink);
   background: #f4eee2 url("assets/hanji_dak.jpg") center / cover;
   transition: opacity 0.7s ease;
@@ -507,8 +530,8 @@ html, body {
   margin-top: 28px;
 }
 
-/* 바닥글이 한 줄에 다 들어가지 않는 폭(800px 이하)부터는 세 덩어리를 한 줄씩 쌓고 구분선은 감춘다 */
-@media (max-width: 800px) {
+/* 바닥글이 한 줄에 다 들어가지 않는 폭(1080px 이하)부터는 네 덩어리를 한 줄씩 쌓고 구분선은 감춘다 */
+@media (max-width: 1080px) {
   .start-footer span {
     display: block;
   }

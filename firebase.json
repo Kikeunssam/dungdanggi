@@ -14,6 +14,7 @@
       "README.md",
       "*.py",
       "sounds.js",
+      "fonts_file.css",
       "clip_timing.js",
       "tools/**",
       "design/**",
@@ -25,7 +26,7 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(mp4|wav|m4a|jpg|png|svg)",
+        "source": "**/*.@(mp4|wav|m4a|jpg|png|svg|woff2)",
         "headers": [
           {
             "key": "Cache-Control",
